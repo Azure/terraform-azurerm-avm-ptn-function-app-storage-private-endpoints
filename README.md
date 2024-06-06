@@ -239,7 +239,7 @@ Default: `null`
 
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
-Description: The lock level to apply. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
+Description: The lock level to apply. Possible values are `CanNotDelete` and `ReadOnly`.
 
 Type:
 

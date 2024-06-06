@@ -197,7 +197,7 @@ variable "lock" {
   description = "The lock level to apply. Possible values are `CanNotDelete` and `ReadOnly`."
 
   validation {
-    condition     = contains(["CanNotDelete", "ReadOnly"], var.lock.kind)
+    condition     = var.lock != null ? contains(["CanNotDelete", "ReadOnly"], var.lock.kind) : true
     error_message = "The lock level must be one of: 'CanNotDelete' or 'ReadOnly'."
   }
 }
