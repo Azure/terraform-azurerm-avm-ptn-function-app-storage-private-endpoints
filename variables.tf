@@ -193,7 +193,7 @@ variable "lock" {
     name = optional(string, null)
     kind = string
   })
-  default     = {}
+  default     = null
   description = "The lock level to apply. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`."
 
   validation {
@@ -291,11 +291,12 @@ variable "private_endpoints" {
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
     lock = optional(object({
       name = optional(string, null)
       kind = string
-    }), {})
+    }), null)
     tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
     private_dns_zone_group_name             = optional(string, "default")
@@ -330,6 +331,7 @@ A map of private endpoints to create on this resource. The map key is deliberate
   - `name` - The name of the IP configuration.
   - `private_ip_address` - The private IP address of the IP configuration.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "role_assignments" {
@@ -356,6 +358,7 @@ A map of role assignments to create on this resource. The map key is deliberatel
 
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "service_plan_resource_id" {
@@ -584,7 +587,7 @@ variable "site_config" {
 # tflint-ignore: terraform_unused_declarations
 variable "tags" {
   type        = map(string)
-  default     = {}
+  default     = null
   description = "The map of tags to be applied to the resource"
 }
 

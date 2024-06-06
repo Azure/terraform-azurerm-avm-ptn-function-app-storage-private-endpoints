@@ -250,7 +250,7 @@ object({
   })
 ```
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
 
@@ -379,11 +379,12 @@ map(object({
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
     lock = optional(object({
       name = optional(string, null)
       kind = string
-    }), {})
+    }), null)
     tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
     private_dns_zone_group_name             = optional(string, "default")
@@ -666,7 +667,7 @@ Description: The map of tags to be applied to the resource
 
 Type: `map(string)`
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_virtual_network_subnet_id"></a> [virtual\_network\_subnet\_id](#input\_virtual\_network\_subnet\_id)
 
