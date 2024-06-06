@@ -19,6 +19,9 @@ module "function_app" {
   # Existing service plan
   service_plan_resource_id = var.service_plan_resource_id
 
+
+
+
   # Uses external storage account module call, which creates a new storage account. References the name of the new storage account.
   function_app_create_storage_account        = false
   function_app_storage_account_name          = var.create_secure_storage_account ? module.storage_account[0].name : var.function_app_storage_account_name
@@ -27,11 +30,15 @@ module "function_app" {
   function_app_storage_account_access_key    = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : var.function_app_storage_account_access_key
   tags                                       = var.tags
 
-  lock = var.lock == null ? null : var.lock
+  lock = var.lock
 
   managed_identities = {
     system_assigned = true
   }
+
+  application_insights = var.application_insights
+  diagnostic_settings  = var.diagnostic_settings
+  role_assignments     = var.role_assignments
 
   private_endpoints = {
     primary = {

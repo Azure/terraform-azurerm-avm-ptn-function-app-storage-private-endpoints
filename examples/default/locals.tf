@@ -5,5 +5,4 @@ locals {
     "eastasia",
     "japaneast"
   ]
-  endpoints = toset(["blob", "queue", "table", "file"])
 }
