@@ -27,7 +27,7 @@ module "function_app" {
   function_app_storage_account_access_key    = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : var.function_app_storage_account_access_key
   tags                                       = var.tags
 
-  lock = var.lock
+  lock = var.lock == null ? null : var.lock
 
   managed_identities = {
     system_assigned = true
