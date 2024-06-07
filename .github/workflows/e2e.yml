@@ -27,7 +27,7 @@ jobs:
 
   testexamples:
     if: github.event.repository.name != 'terraform-azurerm-avm-template'
-    runs-on: [ self-hosted, 1ES.Pool=terraform-azurerm-avm-ptn-function-app-storage-private-endpoints ]
+    runs-on: [ self-hosted, 1ES.Pool=362ed2f30aecb12b7b8df89da8ddf63314a8b925 ]
     needs: getexamples
     environment: test
     env:
