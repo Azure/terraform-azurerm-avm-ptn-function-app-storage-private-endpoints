@@ -19,7 +19,7 @@ module "storage_account" {
       name                          = "pe-${endpoint}-${var.function_app_storage_account.name}"
       subnet_resource_id            = var.private_endpoint_subnet_resource_id
       subresource_name              = endpoint
-      private_dns_zone_resource_ids = ["/subscriptions/${var.private_dns_zone_subscription_id}/resourceGroups/${var.private_dns_zone_resource_group_name}/providers/Microsoft.Network/privateDnsZones/privatelink.${endpoint}.core.windows.net"]
+      private_dns_zone_resource_ids = ["/subscriptions/${var.private_dns_zone_subscription_id}/resourceGroups/${var.private_dns_zone_resource_group_name}/providers/Microsoft.Network/privateDnsZones/${endpoint}.core.windows.net"]
       tags                          = var.tags
     }
   }
@@ -39,12 +39,12 @@ module "storage_account" {
     }
   }
 
-  shares = {
-    function_app_share = {
-      name  = var.function_app_storage_account.name
-      quota = 1 # in GB
-    }
-  }
+  # shares = {
+  #   function_app_share = {
+  #     name  = var.function_app_storage_account.name
+  #     quota = 1 # in GB
+  #   }
+  # }
 
   tags = var.tags
 }

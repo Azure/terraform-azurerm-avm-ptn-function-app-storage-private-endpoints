@@ -113,7 +113,7 @@ module "avm_res_storage_storageaccount" {
       name                          = "pe-${endpoint}-${module.naming.storage_account.name_unique}"
       subnet_resource_id            = azurerm_subnet.example.id
       subresource_name              = endpoint
-      private_dns_zone_resource_ids = ["/subscriptions/${data.azurerm_client_config.this.subscription_id}/resourceGroups/${azurerm_resource_group.example.name}/providers/Microsoft.Network/privateDnsZones/privatelink.${endpoint}.core.windows.net"]
+      private_dns_zone_resource_ids = ["/subscriptions/${data.azurerm_client_config.this.subscription_id}/resourceGroups/${azurerm_resource_group.example.name}/providers/Microsoft.Network/privateDnsZones/${endpoint}.core.windows.net"]
       tags = {
         environment = "dev"
       }
@@ -134,12 +134,12 @@ module "avm_res_storage_storageaccount" {
       principal_id               = module.test.resource.identity[0].principal_id
     }
   }
-  shares = {
-    function_app_share = {
-      name  = module.naming.storage_account.name_unique
-      quota = 1 # in GB
-    }
-  }
+  # shares = {
+  #   function_app_share = {
+  #     name  = module.naming.storage_account.name_unique
+  #     quota = 1 # in GB
+  #   }
+  # }
 }
 
 resource "azurerm_service_plan" "example" {
