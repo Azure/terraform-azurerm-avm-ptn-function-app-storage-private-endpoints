@@ -146,7 +146,7 @@ resource "azurerm_service_plan" "example" {
   name                = module.naming.app_service_plan.name_unique
   os_type             = "Windows"
   resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "Y1"
+  sku_name            = "S1"
 }
 
 # This is the module call
