@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.6.0"
+  required_version = ">= 1.6.1"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -100,6 +100,11 @@ module "avm_res_storage_storageaccount" {
   location                      = azurerm_resource_group.example.location
   shared_access_key_enabled     = true
   public_network_access_enabled = false
+
+  network_rules = {
+    bypass         = ["AzureServices"]
+    default_action = "Allow"
+  }
 
   private_endpoints = {
     for endpoint in local.endpoints :

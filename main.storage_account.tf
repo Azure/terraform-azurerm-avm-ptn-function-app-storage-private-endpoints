@@ -13,6 +13,11 @@ module "storage_account" {
   # this is necessary as managed identity does work with Elastic Premium Plans due to missing authentication support in Azure Files
   shared_access_key_enabled = true
 
+  network_rules = {
+    bypass         = ["AzureServices"]
+    default_action = "Allow"
+  }
+
   private_endpoints = {
     for endpoint in local.endpoints :
     endpoint => {

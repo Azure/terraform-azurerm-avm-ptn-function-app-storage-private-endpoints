@@ -5,7 +5,7 @@ This deploys an example showing the pattern referencing existing resources or re
 
 ```hcl
 terraform {
-  required_version = ">= 1.6.0"
+  required_version = ">= 1.6.1"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -106,6 +106,11 @@ module "avm_res_storage_storageaccount" {
   location                      = azurerm_resource_group.example.location
   shared_access_key_enabled     = true
   public_network_access_enabled = false
+
+  network_rules = {
+    bypass         = ["AzureServices"]
+    default_action = "Allow"
+  }
 
   private_endpoints = {
     for endpoint in local.endpoints :
@@ -249,7 +254,7 @@ module "test" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.6.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.6.1)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.7.0, < 4.0.0)
 
