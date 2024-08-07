@@ -1,11 +1,26 @@
-output "private_endpoints" {
-  description = "A map of private endpoints. The map key is the supplied input to var.private_endpoints. The map value is the entire azurerm_private_endpoint resource."
-  value       = azurerm_private_endpoint.this
+output "function_app_private_dns_zone" {
+  description = "The resource output for the private dns zone of the function app"
+  value       = length(var.private_dns_zones) > 0 && var.zone_key_for_link != null ? module.private_dns_zone[var.zone_key_for_link].private_dnz_zone_output : null
 }
 
-# Module owners should include the full resource via a 'resource' output
-# https://azure.github.io/Azure-Verified-Modules/specs/terraform/#id-tffr2---category-outputs---additional-terraform-outputs
+output "function_app_private_dns_zone_id" {
+  description = "The resource output for the private dns zone of the function app"
+  value       = length(var.private_dns_zones) > 0 && var.zone_key_for_link != null ? module.private_dns_zone[var.zone_key_for_link].private_dnz_zone_output.id : null
+}
+
+output "name" {
+  description = "This is the name of the resource."
+  value       = module.function_app.name
+}
+
 output "resource" {
   description = "This is the full output for the resource."
-  value       = azurerm_resource_group.TODO # TODO: Replace this dummy resource azurerm_resource_group.TODO with your module resource
+  sensitive   = true
+  value       = module.function_app.resource
+}
+
+output "resource_id" {
+  description = "This is the full output for the resource."
+  sensitive   = true
+  value       = module.function_app.resource.id
 }
