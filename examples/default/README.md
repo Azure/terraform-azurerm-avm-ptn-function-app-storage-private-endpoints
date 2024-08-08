@@ -255,7 +255,23 @@ Default: `true`
 
 ## Outputs
 
-No outputs.
+The following outputs are exported:
+
+### <a name="output_location"></a> [location](#output\_location)
+
+Description: The location of the resource group that the resources were created in.
+
+### <a name="output_resource"></a> [resource](#output\_resource)
+
+Description: The full output of the function app.
+
+### <a name="output_resource_group"></a> [resource\_group](#output\_resource\_group)
+
+Description: The resource group the resources were created in.
+
+### <a name="output_storage_account"></a> [storage\_account](#output\_storage\_account)
+
+Description: The name of the storage account.
 
 ## Modules
 

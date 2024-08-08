@@ -1,23 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# terraform-azurerm-avm-template
+# terraform-azurerm-avm-ptn-function-app-storage-private-endpoints
 
-This is a template repo for Terraform Azure Verified Modules.
-
-Things to do:
-
-1. Set up a GitHub repo environment called `test`.
-1. Configure environment protection rule to ensure that approval is required before deploying to this environment.
-1. Create a user-assigned managed identity in your test subscription.
-1. Create a role assignment for the managed identity on your test subscription, use the minimum required role.
-1. Configure federated identity credentials on the user assigned managed identity. Use the GitHub environment.
-1. Search and update TODOs within the code and remove the TODO comments once complete.
-
-> [!IMPORTANT]
-> As the overall AVM framework is not GA (generally available) yet - the CI framework and test automation is not fully functional and implemented across all supported languages yet - breaking changes are expected, and additional customer feedback is yet to be gathered and incorporated. Hence, modules **MUST NOT** be published at version `1.0.0` or higher at this time.
->
-> All module **MUST** be published as a pre-release version (e.g., `0.1.0`, `0.1.1`, `0.2.0`, etc.) until the AVM framework becomes GA.
->
-> However, it is important to note that this **DOES NOT** mean that the modules cannot be consumed and utilized. They **CAN** be leveraged in all types of environments (dev, test, prod etc.). Consumers can treat them just like any other IaC module and raise issues or feature requests against them as they learn from the usage of the module. Consumers should also read the release notes for each version, if considering updating to a more recent version of a module to see if there are any considerations or breaking changes etc.
+This is the pattern module to deply function app with secured storage.
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
@@ -28,6 +12,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.71)
 
+- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
+
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 ## Providers
@@ -36,14 +22,18 @@ The following providers are used by this module:
 
 - <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.71)
 
+- <a name="provider_modtm"></a> [modtm](#provider\_modtm) (~> 0.3)
+
 - <a name="provider_random"></a> [random](#provider\_random) (~> 3.5)
 
 ## Resources
 
 The following resources are used by this module:
 
-- [azurerm_resource_group_template_deployment.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group_template_deployment) (resource)
-- [random_id.telem](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) (resource)
+- [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
+- [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
+- [azurerm_client_config.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -652,6 +642,10 @@ Description: This is the full output for the resource.
 
 Description: This is the full output for the resource.
 
+### <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name)
+
+Description: This is the name of the storage account.
+
 ## Modules
 
 The following Modules are called:
@@ -660,7 +654,7 @@ The following Modules are called:
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.5.0
+Version: 0.9.0
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 
@@ -672,7 +666,7 @@ Version: 0.1.1
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.1.3
+Version: 0.2.1
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

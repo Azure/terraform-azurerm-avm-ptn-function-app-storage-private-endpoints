@@ -24,3 +24,8 @@ output "resource_id" {
   sensitive   = true
   value       = module.function_app.resource.id
 }
+
+output "storage_account_name" {
+  description = "This is the name of the storage account."
+  value       = var.create_secure_storage_account ? module.storage_account[0].name : null
+}

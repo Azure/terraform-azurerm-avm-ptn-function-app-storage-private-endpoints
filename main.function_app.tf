@@ -1,6 +1,6 @@
 module "function_app" {
   source  = "Azure/avm-res-web-site/azurerm"
-  version = "0.5.0"
+  version = "0.9.0"
 
   enable_telemetry = var.enable_telemetry
 
@@ -18,9 +18,6 @@ module "function_app" {
 
   # Existing service plan
   service_plan_resource_id = var.service_plan_resource_id
-
-
-
 
   # Uses external storage account module call, which creates a new storage account. References the name of the new storage account.
   function_app_create_storage_account        = false
