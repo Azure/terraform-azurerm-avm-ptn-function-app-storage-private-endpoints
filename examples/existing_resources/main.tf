@@ -149,10 +149,6 @@ resource "azurerm_service_plan" "example" {
   sku_name            = "S1"
 }
 
-# This is the module call
-# Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
 module "test" {
   source = "../../"
 
@@ -165,21 +161,9 @@ module "test" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  # os_type = "Windows"
-
-
   # Uses an existing app service plan
   os_type                  = azurerm_service_plan.example.os_type
   service_plan_resource_id = azurerm_service_plan.example.id
-
-
-  /*
-  # Creates a new app service plan
-  create_service_plan = true
-  new_service_plan = {
-    sku_name = "S1"
-  }
-  */
 
   application_insights = {
     name                  = module.naming.application_insights.name_unique
@@ -196,15 +180,6 @@ module "test" {
   function_app_storage_account_name                      = module.avm_res_storage_storageaccount.name
   function_app_storage_account_primary_connection_string = module.avm_res_storage_storageaccount.resource.primary_connection_string
   function_app_storage_account_access_key                = module.avm_res_storage_storageaccount.resource.primary_access_key
-
-  /*
-  # Uses the avm-res-storage-storageaccount module to create a new storage account within root module
-  function_app_create_storage_account = true
-  function_app_storage_account = {
-    name                = module.naming.storage_account.name_unique
-    resource_group_name = azurerm_resource_group.example.name
-  }
-  */
 
   private_endpoint_subnet_resource_id = azurerm_subnet.example.id
   virtual_network_subnet_id           = azurerm_subnet.app_service.id

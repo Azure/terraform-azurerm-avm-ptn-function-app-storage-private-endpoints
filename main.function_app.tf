@@ -40,7 +40,7 @@ module "function_app" {
   private_endpoints = {
     primary = {
       name                          = "pe-${var.name}"
-      private_dns_zone_resource_ids = var.private_dns_zones == null || length(var.private_dns_zones) < 1 ? ["/subscriptions/${var.private_dns_zone_subscription_id}/resourceGroups/${var.private_dns_zone_resource_group_name}/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"] : [module.private_dns_zone[var.zone_key_for_link].private_dnz_zone_output.id]
+      private_dns_zone_resource_ids = var.private_dns_zones == null || length(var.private_dns_zones) < 1 ? ["/subscriptions/${var.private_dns_zone_subscription_id}/resourceGroups/${var.private_dns_zone_resource_group_name}/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"] : [module.private_dns_zone[var.zone_key_for_link].resource.id]
       subnet_resource_id            = var.private_endpoint_subnet_resource_id
       tags                          = var.tags
     }

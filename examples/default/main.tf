@@ -58,13 +58,6 @@ resource "azurerm_virtual_network" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-# resource "azurerm_private_dns_zone_virtual_network_link" "example" {
-#   name                  = "${azurerm_virtual_network.example.name}-link"
-#   private_dns_zone_name = azurerm_private_dns_zone.function_app.name
-#   resource_group_name   = azurerm_resource_group.example.name
-#   virtual_network_id    = azurerm_virtual_network.example.id
-# }
-
 resource "azurerm_subnet" "example" {
   address_prefixes     = ["192.168.0.0/25"]
   name                 = module.naming.subnet.name_unique
@@ -88,19 +81,6 @@ resource "azurerm_subnet" "app_service" {
   }
 }
 
-# # We make private DNS zones to be able to run the end to end tests
-# resource "azurerm_private_dns_zone" "function_app" {
-#   name                = "privatelink.azurewebsites.net"
-#   resource_group_name = azurerm_resource_group.example.name
-# }
-
-# resource "azurerm_private_dns_zone" "storage_account" {
-#   for_each = local.endpoints
-
-#   name                = "privatelink.${each.value}.core.windows.net"
-#   resource_group_name = azurerm_resource_group.example.name
-# }
-
 # LAW for Application Insights
 resource "azurerm_log_analytics_workspace" "example" {
   location            = azurerm_resource_group.example.location
@@ -110,14 +90,11 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
-# This is the module call
-# Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
 module "test" {
   source = "../../"
+
   # source             = "Azure/avm-ptn-function-app-storage-private-endpoints/azurerm"
-  # ...
+  # version = "0.1.0"
 
   enable_telemetry = var.enable_telemetry
 
@@ -126,12 +103,6 @@ module "test" {
   location            = azurerm_resource_group.example.location
 
   os_type = "Windows"
-
-  /*
-  # Uses an existing app service plan
-  os_type = azurerm_service_plan.example.os_type
-  service_plan_resource_id = azurerm_service_plan.example.id
-  */
 
   # Creates a new app service plan
   create_service_plan = true

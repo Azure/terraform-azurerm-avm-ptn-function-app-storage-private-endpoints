@@ -187,6 +187,7 @@ Description:   A map of objects that represent a Storage Account to mount to the
 
   - `name` - (Optional) The name of the Storage Account.
   - `resource_group_name` - (Optional) The name of the resource group to deploy the Storage Account in.
+  - `account_replication_type` - (Optional) The replication type of the Storage Account. Defaults to `LRS`.
 
   ```terraform
 
@@ -196,8 +197,9 @@ Type:
 
 ```hcl
 object({
-    name                = optional(string)
-    resource_group_name = optional(string)
+    name                     = optional(string)
+    resource_group_name      = optional(string)
+    account_replication_type = optional(string, "LRS")
   })
 ```
 
@@ -660,7 +662,7 @@ Version: 0.9.0
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.1.1
+Version: 0.1.2
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 

@@ -5,7 +5,7 @@ module "storage_account" {
 
   enable_telemetry = var.enable_telemetry
 
-  account_replication_type      = "LRS"
+  account_replication_type      = var.function_app_storage_account.account_replication_type
   name                          = var.function_app_storage_account.name
   resource_group_name           = var.resource_group_name
   location                      = var.location
