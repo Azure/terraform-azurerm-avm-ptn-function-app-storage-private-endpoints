@@ -1,7 +1,7 @@
 module "storage_account" {
   count   = var.create_secure_storage_account ? 1 : 0
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.2.1"
+  version = "0.2.2"
 
   enable_telemetry = var.enable_telemetry
 
@@ -9,14 +9,11 @@ module "storage_account" {
   name                          = var.function_app_storage_account.name
   resource_group_name           = var.resource_group_name
   location                      = var.location
-  public_network_access_enabled = false
+  public_network_access_enabled = var.function_app_storage_account.public_network_access_enabled
   # this is necessary as managed identity does work with Elastic Premium Plans due to missing authentication support in Azure Files
   shared_access_key_enabled = true
 
-  network_rules = {
-    bypass         = ["AzureServices"]
-    default_action = "Allow"
-  }
+  network_rules = var.function_app_storage_account.network_rules
 
   private_endpoints = {
     for endpoint in local.endpoints :

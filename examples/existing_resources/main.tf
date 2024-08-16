@@ -47,7 +47,7 @@ data "azurerm_client_config" "this" {}
 # This is required for resource modules
 resource "azurerm_resource_group" "example" {
   location = local.azure_regions[random_integer.region_index.result]
-  name     = module.naming.resource_group.name_unique
+  name     = "${module.naming.resource_group.name_unique}-existing-secured"
 }
 
 # LAW for Application Insights
@@ -92,7 +92,7 @@ resource "azurerm_subnet" "app_service" {
 
 module "avm_res_storage_storageaccount" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.2.1"
+  version = "0.2.2"
 
   enable_telemetry              = var.enable_telemetry
   name                          = module.naming.storage_account.name_unique

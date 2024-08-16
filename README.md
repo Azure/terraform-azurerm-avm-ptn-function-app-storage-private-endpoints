@@ -10,7 +10,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.6.1)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.71)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.114.0)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
@@ -20,7 +20,7 @@ The following requirements are needed by this module:
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.71)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.114.0)
 
 - <a name="provider_modtm"></a> [modtm](#provider\_modtm) (~> 0.3)
 
@@ -197,9 +197,26 @@ Type:
 
 ```hcl
 object({
-    name                     = optional(string)
-    resource_group_name      = optional(string)
-    account_replication_type = optional(string, "LRS")
+    name                          = optional(string)
+    resource_group_name           = optional(string)
+    account_replication_type      = optional(string, "LRS")
+    public_network_access_enabled = optional(bool, false)
+    network_rules = optional(object({
+      bypass                     = optional(set(string), [])
+      default_action             = optional(string, "Deny")
+      ip_rules                   = optional(set(string), [])
+      virtual_network_subnet_ids = optional(set(string), [])
+      private_link_access = optional(list(object({
+        endpoint_resource_id = string
+        endpoint_tenant_id   = optional(string)
+      })))
+      timeouts = optional(object({
+        create = optional(string)
+        delete = optional(string)
+        read   = optional(string)
+        update = optional(string)
+      }))
+    }), {})
   })
 ```
 
@@ -668,7 +685,7 @@ Version: 0.1.2
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.2.1
+Version: 0.2.2
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

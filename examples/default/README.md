@@ -53,7 +53,7 @@ data "azurerm_client_config" "this" {}
 # This is required for resource modules
 resource "azurerm_resource_group" "example" {
   location = local.azure_regions[random_integer.region_index.result]
-  name     = module.naming.resource_group.name_unique
+  name     = "${module.naming.resource_group.name_unique}-default-secured"
 }
 
 # A vnet is required for the private endpoint.
@@ -120,8 +120,10 @@ module "test" {
   # Uses the avm-res-storage-storageaccount module to create a new storage account within root module
   create_secure_storage_account = true
   function_app_storage_account = {
-    name                = module.naming.storage_account.name_unique
-    resource_group_name = azurerm_resource_group.example.name
+    name                          = module.naming.storage_account.name_unique
+    resource_group_name           = azurerm_resource_group.example.name
+    public_network_access_enabled = true
+    network_rules                 = null
   }
 
   application_insights = {
