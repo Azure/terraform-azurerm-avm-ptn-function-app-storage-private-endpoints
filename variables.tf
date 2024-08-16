@@ -148,26 +148,6 @@ variable "enable_telemetry" {
   DESCRIPTION
 }
 
-variable "function_app_storage_account" {
-  type = object({
-    name                = optional(string)
-    resource_group_name = optional(string)
-  })
-  default = {
-
-  }
-  description = <<DESCRIPTION
-  A map of objects that represent a Storage Account to mount to the Function App.
-
-  - `name` - (Optional) The name of the Storage Account.
-  - `resource_group_name` - (Optional) The name of the resource group to deploy the Storage Account in.
-
-  ```terraform
-
-  ```
-  DESCRIPTION
-}
-
 variable "function_app_storage_account_access_key" {
   type        = string
   default     = null
@@ -254,24 +234,6 @@ variable "private_dns_zone_subscription_id" {
   type        = string
   default     = null
   description = "subscription id where the Private DNS Zones are registered"
-}
-
-variable "private_dns_zones" {
-  type = map(object({
-    domain_name         = string
-    resource_group_name = string
-    tags                = optional(map(string), null)
-    virtual_network_links = optional(map(object({
-      vnetlinkname     = string
-      vnetid           = string
-      autoregistration = optional(bool, false)
-      tags             = optional(map(string), null)
-    })), {})
-  }))
-  default = {
-
-  }
-  description = "A map of private DNS zones to create and associate with the storage account and/or Function App."
 }
 
 variable "private_endpoint_subnet_resource_id" {

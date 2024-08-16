@@ -53,7 +53,7 @@ data "azurerm_client_config" "this" {}
 # This is required for resource modules
 resource "azurerm_resource_group" "example" {
   location = local.azure_regions[random_integer.region_index.result]
-  name     = module.naming.resource_group.name_unique
+  name     = "${module.naming.resource_group.name_unique}-default-secured"
 }
 
 # A vnet is required for the private endpoint.
@@ -63,13 +63,6 @@ resource "azurerm_virtual_network" "example" {
   name                = module.naming.virtual_network.name_unique
   resource_group_name = azurerm_resource_group.example.name
 }
-
-# resource "azurerm_private_dns_zone_virtual_network_link" "example" {
-#   name                  = "${azurerm_virtual_network.example.name}-link"
-#   private_dns_zone_name = azurerm_private_dns_zone.function_app.name
-#   resource_group_name   = azurerm_resource_group.example.name
-#   virtual_network_id    = azurerm_virtual_network.example.id
-# }
 
 resource "azurerm_subnet" "example" {
   address_prefixes     = ["192.168.0.0/25"]
@@ -83,6 +76,7 @@ resource "azurerm_subnet" "app_service" {
   name                 = "${module.naming.subnet.name_unique}-appservice"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
+  service_endpoints    = ["Microsoft.Storage"]
 
   delegation {
     name = "Microsoft.Web/serverFarms"
@@ -94,19 +88,6 @@ resource "azurerm_subnet" "app_service" {
   }
 }
 
-# # We make private DNS zones to be able to run the end to end tests
-# resource "azurerm_private_dns_zone" "function_app" {
-#   name                = "privatelink.azurewebsites.net"
-#   resource_group_name = azurerm_resource_group.example.name
-# }
-
-# resource "azurerm_private_dns_zone" "storage_account" {
-#   for_each = local.endpoints
-
-#   name                = "privatelink.${each.value}.core.windows.net"
-#   resource_group_name = azurerm_resource_group.example.name
-# }
-
 # LAW for Application Insights
 resource "azurerm_log_analytics_workspace" "example" {
   location            = azurerm_resource_group.example.location
@@ -116,14 +97,18 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
-# This is the module call
-# Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
+module "public_ip" {
+  count = var.bypass_ip_cidr == null ? 1 : 0
+
+  source  = "lonegunmanb/public-ip/lonegunmanb"
+  version = "0.1.0"
+}
+
 module "test" {
   source = "../../"
+
   # source             = "Azure/avm-ptn-function-app-storage-private-endpoints/azurerm"
-  # ...
+  # version = "0.1.0"
 
   enable_telemetry = var.enable_telemetry
 
@@ -133,24 +118,25 @@ module "test" {
 
   os_type = "Windows"
 
-  /*
-  # Uses an existing app service plan
-  os_type = azurerm_service_plan.example.os_type
-  service_plan_resource_id = azurerm_service_plan.example.id
-  */
-
   # Creates a new app service plan
   create_service_plan = true
   new_service_plan = {
-    sku_name = "S1"
+    sku_name = "B1"
   }
 
 
   # Uses the avm-res-storage-storageaccount module to create a new storage account within root module
   create_secure_storage_account = true
   function_app_storage_account = {
-    name                = module.naming.storage_account.name_unique
-    resource_group_name = azurerm_resource_group.example.name
+    name                          = module.naming.storage_account.name_unique
+    resource_group_name           = azurerm_resource_group.example.name
+    public_network_access_enabled = true
+    network_rules = {
+      bypass                     = ["AzureServices"]
+      default_action             = "Deny"
+      ip_rules                   = [try(module.public_ip[0].public_ip, var.bypass_ip_cidr)]
+      virtual_network_subnet_ids = toset([azurerm_subnet.app_service.id])
+    }
   }
 
   application_insights = {
@@ -243,6 +229,14 @@ No required inputs.
 
 The following input variables are optional (have default values):
 
+### <a name="input_bypass_ip_cidr"></a> [bypass\_ip\_cidr](#input\_bypass\_ip\_cidr)
+
+Description: value to bypass the IP CIDR on firewall rules
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
 Description: This variable controls whether or not telemetry is enabled for the module.  
@@ -255,7 +249,31 @@ Default: `true`
 
 ## Outputs
 
-No outputs.
+The following outputs are exported:
+
+### <a name="output_function_app_private_dns_zone"></a> [function\_app\_private\_dns\_zone](#output\_function\_app\_private\_dns\_zone)
+
+Description: The resource output for the private dns zone of the function app
+
+### <a name="output_location"></a> [location](#output\_location)
+
+Description: The location of the resource group that the resources were created in.
+
+### <a name="output_name"></a> [name](#output\_name)
+
+Description: This is the full output for the resource.
+
+### <a name="output_resource"></a> [resource](#output\_resource)
+
+Description: The full output of the function app.
+
+### <a name="output_resource_group"></a> [resource\_group](#output\_resource\_group)
+
+Description: The resource group the resources were created in.
+
+### <a name="output_storage_account"></a> [storage\_account](#output\_storage\_account)
+
+Description: The name of the storage account.
 
 ## Modules
 
@@ -266,6 +284,12 @@ The following Modules are called:
 Source: Azure/naming/azurerm
 
 Version: >= 0.3.0
+
+### <a name="module_public_ip"></a> [public\_ip](#module\_public\_ip)
+
+Source: lonegunmanb/public-ip/lonegunmanb
+
+Version: 0.1.0
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 

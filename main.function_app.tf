@@ -1,6 +1,6 @@
 module "function_app" {
   source  = "Azure/avm-res-web-site/azurerm"
-  version = "0.5.0"
+  version = "0.9.0"
 
   enable_telemetry = var.enable_telemetry
 
@@ -18,9 +18,6 @@ module "function_app" {
 
   # Existing service plan
   service_plan_resource_id = var.service_plan_resource_id
-
-
-
 
   # Uses external storage account module call, which creates a new storage account. References the name of the new storage account.
   function_app_create_storage_account        = false
@@ -43,7 +40,7 @@ module "function_app" {
   private_endpoints = {
     primary = {
       name                          = "pe-${var.name}"
-      private_dns_zone_resource_ids = var.private_dns_zones == null || length(var.private_dns_zones) < 1 ? ["/subscriptions/${var.private_dns_zone_subscription_id}/resourceGroups/${var.private_dns_zone_resource_group_name}/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"] : [module.private_dns_zone[var.zone_key_for_link].private_dnz_zone_output.id]
+      private_dns_zone_resource_ids = var.private_dns_zones == null || length(var.private_dns_zones) < 1 ? ["/subscriptions/${var.private_dns_zone_subscription_id}/resourceGroups/${var.private_dns_zone_resource_group_name}/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"] : [module.private_dns_zone[var.zone_key_for_link].resource.id]
       subnet_resource_id            = var.private_endpoint_subnet_resource_id
       tags                          = var.tags
     }

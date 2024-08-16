@@ -47,7 +47,7 @@ data "azurerm_client_config" "this" {}
 # This is required for resource modules
 resource "azurerm_resource_group" "example" {
   location = local.azure_regions[random_integer.region_index.result]
-  name     = module.naming.resource_group.name_unique
+  name     = "${module.naming.resource_group.name_unique}-existing-secured"
 }
 
 # LAW for Application Insights
@@ -79,6 +79,7 @@ resource "azurerm_subnet" "app_service" {
   name                 = "${module.naming.subnet.name_unique}-appservice"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
+  service_endpoints    = ["Microsoft.Storage"]
 
   delegation {
     name = "Microsoft.Web/serverFarms"
@@ -92,7 +93,7 @@ resource "azurerm_subnet" "app_service" {
 
 module "avm_res_storage_storageaccount" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.1.3"
+  version = "0.2.2"
 
   enable_telemetry              = var.enable_telemetry
   name                          = module.naming.storage_account.name_unique
@@ -102,8 +103,10 @@ module "avm_res_storage_storageaccount" {
   public_network_access_enabled = false
 
   network_rules = {
-    bypass         = ["AzureServices"]
-    default_action = "Allow"
+    bypass                     = ["AzureServices"]
+    default_action             = "Deny"
+    ip_rules                   = [try(module.public_ip[0].public_ip, var.bypass_ip_cidr)]
+    virtual_network_subnet_ids = toset([azurerm_subnet.app_service.id])
   }
 
   private_endpoints = {
@@ -149,10 +152,13 @@ resource "azurerm_service_plan" "example" {
   sku_name            = "S1"
 }
 
-# This is the module call
-# Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
+module "public_ip" {
+  count = var.bypass_ip_cidr == null ? 1 : 0
+
+  source  = "lonegunmanb/public-ip/lonegunmanb"
+  version = "0.1.0"
+}
+
 module "test" {
   source = "../../"
 
@@ -165,21 +171,9 @@ module "test" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  # os_type = "Windows"
-
-
   # Uses an existing app service plan
   os_type                  = azurerm_service_plan.example.os_type
   service_plan_resource_id = azurerm_service_plan.example.id
-
-
-  /*
-  # Creates a new app service plan
-  create_service_plan = true
-  new_service_plan = {
-    sku_name = "S1"
-  }
-  */
 
   application_insights = {
     name                  = module.naming.application_insights.name_unique
@@ -196,15 +190,6 @@ module "test" {
   function_app_storage_account_name                      = module.avm_res_storage_storageaccount.name
   function_app_storage_account_primary_connection_string = module.avm_res_storage_storageaccount.resource.primary_connection_string
   function_app_storage_account_access_key                = module.avm_res_storage_storageaccount.resource.primary_access_key
-
-  /*
-  # Uses the avm-res-storage-storageaccount module to create a new storage account within root module
-  function_app_create_storage_account = true
-  function_app_storage_account = {
-    name                = module.naming.storage_account.name_unique
-    resource_group_name = azurerm_resource_group.example.name
-  }
-  */
 
   private_endpoint_subnet_resource_id = azurerm_subnet.example.id
   virtual_network_subnet_id           = azurerm_subnet.app_service.id
