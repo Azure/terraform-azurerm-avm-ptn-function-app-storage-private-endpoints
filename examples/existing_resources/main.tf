@@ -79,6 +79,7 @@ resource "azurerm_subnet" "app_service" {
   name                 = "${module.naming.subnet.name_unique}-appservice"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
+  service_endpoints    = ["Microsoft.Storage"]
 
   delegation {
     name = "Microsoft.Web/serverFarms"
@@ -102,8 +103,10 @@ module "avm_res_storage_storageaccount" {
   public_network_access_enabled = false
 
   network_rules = {
-    bypass         = ["AzureServices"]
-    default_action = "Allow"
+    bypass                     = ["AzureServices"]
+    default_action             = "Deny"
+    ip_rules                   = [try(module.public_ip[0].public_ip, var.bypass_ip_cidr)]
+    virtual_network_subnet_ids = toset([azurerm_subnet.app_service.id])
   }
 
   private_endpoints = {
@@ -147,6 +150,13 @@ resource "azurerm_service_plan" "example" {
   os_type             = "Windows"
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "S1"
+}
+
+module "public_ip" {
+  count = var.bypass_ip_cidr == null ? 1 : 0
+
+  source  = "lonegunmanb/public-ip/lonegunmanb"
+  version = "0.1.0"
 }
 
 module "test" {

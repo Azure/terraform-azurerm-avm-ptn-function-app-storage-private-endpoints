@@ -85,6 +85,7 @@ resource "azurerm_subnet" "app_service" {
   name                 = "${module.naming.subnet.name_unique}-appservice"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
+  service_endpoints    = ["Microsoft.Storage"]
 
   delegation {
     name = "Microsoft.Web/serverFarms"
@@ -108,8 +109,10 @@ module "avm_res_storage_storageaccount" {
   public_network_access_enabled = false
 
   network_rules = {
-    bypass         = ["AzureServices"]
-    default_action = "Allow"
+    bypass                     = ["AzureServices"]
+    default_action             = "Deny"
+    ip_rules                   = [try(module.public_ip[0].public_ip, var.bypass_ip_cidr)]
+    virtual_network_subnet_ids = toset([azurerm_subnet.app_service.id])
   }
 
   private_endpoints = {
@@ -153,6 +156,13 @@ resource "azurerm_service_plan" "example" {
   os_type             = "Windows"
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "S1"
+}
+
+module "public_ip" {
+  count = var.bypass_ip_cidr == null ? 1 : 0
+
+  source  = "lonegunmanb/public-ip/lonegunmanb"
+  version = "0.1.0"
 }
 
 module "test" {
@@ -265,6 +275,14 @@ No required inputs.
 
 The following input variables are optional (have default values):
 
+### <a name="input_bypass_ip_cidr"></a> [bypass\_ip\_cidr](#input\_bypass\_ip\_cidr)
+
+Description: value to bypass the IP CIDR on firewall rules
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
 Description: This variable controls whether or not telemetry is enabled for the module.  
@@ -283,6 +301,10 @@ The following outputs are exported:
 
 Description: The resource output for the private dns zone of the function app
 
+### <a name="output_location"></a> [location](#output\_location)
+
+Description: The location of the resource group that the resources were created in.
+
 ### <a name="output_name"></a> [name](#output\_name)
 
 Description: This is the full output for the resource.
@@ -290,6 +312,10 @@ Description: This is the full output for the resource.
 ### <a name="output_resource"></a> [resource](#output\_resource)
 
 Description: This is the full output for the resource.
+
+### <a name="output_resource_group"></a> [resource\_group](#output\_resource\_group)
+
+Description: The resource group the resources were created in.
 
 ## Modules
 
@@ -306,6 +332,12 @@ Version: 0.2.2
 Source: Azure/naming/azurerm
 
 Version: >= 0.3.0
+
+### <a name="module_public_ip"></a> [public\_ip](#module\_public\_ip)
+
+Source: lonegunmanb/public-ip/lonegunmanb
+
+Version: 0.1.0
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 

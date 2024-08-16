@@ -76,6 +76,7 @@ resource "azurerm_subnet" "app_service" {
   name                 = "${module.naming.subnet.name_unique}-appservice"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
+  service_endpoints    = ["Microsoft.Storage"]
 
   delegation {
     name = "Microsoft.Web/serverFarms"
@@ -96,6 +97,13 @@ resource "azurerm_log_analytics_workspace" "example" {
   sku                 = "PerGB2018"
 }
 
+module "public_ip" {
+  count = var.bypass_ip_cidr == null ? 1 : 0
+
+  source  = "lonegunmanb/public-ip/lonegunmanb"
+  version = "0.1.0"
+}
+
 module "test" {
   source = "../../"
 
@@ -113,7 +121,7 @@ module "test" {
   # Creates a new app service plan
   create_service_plan = true
   new_service_plan = {
-    sku_name = "S1"
+    sku_name = "B1"
   }
 
 
@@ -123,7 +131,12 @@ module "test" {
     name                          = module.naming.storage_account.name_unique
     resource_group_name           = azurerm_resource_group.example.name
     public_network_access_enabled = true
-    network_rules                 = null
+    network_rules = {
+      bypass                     = ["AzureServices"]
+      default_action             = "Deny"
+      ip_rules                   = [try(module.public_ip[0].public_ip, var.bypass_ip_cidr)]
+      virtual_network_subnet_ids = toset([azurerm_subnet.app_service.id])
+    }
   }
 
   application_insights = {
@@ -216,6 +229,14 @@ No required inputs.
 
 The following input variables are optional (have default values):
 
+### <a name="input_bypass_ip_cidr"></a> [bypass\_ip\_cidr](#input\_bypass\_ip\_cidr)
+
+Description: value to bypass the IP CIDR on firewall rules
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
 Description: This variable controls whether or not telemetry is enabled for the module.  
@@ -230,9 +251,17 @@ Default: `true`
 
 The following outputs are exported:
 
+### <a name="output_function_app_private_dns_zone"></a> [function\_app\_private\_dns\_zone](#output\_function\_app\_private\_dns\_zone)
+
+Description: The resource output for the private dns zone of the function app
+
 ### <a name="output_location"></a> [location](#output\_location)
 
 Description: The location of the resource group that the resources were created in.
+
+### <a name="output_name"></a> [name](#output\_name)
+
+Description: This is the full output for the resource.
 
 ### <a name="output_resource"></a> [resource](#output\_resource)
 
@@ -255,6 +284,12 @@ The following Modules are called:
 Source: Azure/naming/azurerm
 
 Version: >= 0.3.0
+
+### <a name="module_public_ip"></a> [public\_ip](#module\_public\_ip)
+
+Source: lonegunmanb/public-ip/lonegunmanb
+
+Version: 0.1.0
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
