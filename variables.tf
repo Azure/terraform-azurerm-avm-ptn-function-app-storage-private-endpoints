@@ -168,6 +168,12 @@ variable "function_app_storage_account_primary_connection_string" {
   sensitive   = true
 }
 
+variable "https_only" {
+  type        = bool
+  default     = false
+  description = "Should the Function App only be accessible over HTTPS?"
+}
+
 variable "lock" {
   type = object({
     name = optional(string, null)
