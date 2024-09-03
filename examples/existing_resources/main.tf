@@ -149,7 +149,7 @@ resource "azurerm_service_plan" "example" {
   name                = module.naming.app_service_plan.name_unique
   os_type             = "Windows"
   resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "S1"
+  sku_name            = "B1"
 }
 
 module "public_ip" {
@@ -187,9 +187,9 @@ module "test" {
   }
 
   # Uses an existing storage account  
-  function_app_storage_account_name                      = module.avm_res_storage_storageaccount.name
-  function_app_storage_account_primary_connection_string = module.avm_res_storage_storageaccount.resource.primary_connection_string
-  function_app_storage_account_access_key                = module.avm_res_storage_storageaccount.resource.primary_access_key
+  storage_account_name                      = module.avm_res_storage_storageaccount.name
+  storage_account_primary_connection_string = module.avm_res_storage_storageaccount.resource.primary_connection_string
+  storage_account_access_key                = module.avm_res_storage_storageaccount.resource.primary_access_key
 
   private_endpoint_subnet_resource_id = azurerm_subnet.example.id
   virtual_network_subnet_id           = azurerm_subnet.app_service.id
