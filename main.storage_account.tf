@@ -1,7 +1,7 @@
 module "storage_account" {
   count   = var.create_secure_storage_account ? 1 : 0
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.2.5"
+  version = "0.2.4"
 
   enable_telemetry = var.enable_telemetry
 

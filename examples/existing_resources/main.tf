@@ -93,7 +93,7 @@ resource "azurerm_subnet" "app_service" {
 
 module "avm_res_storage_storageaccount" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.2.5"
+  version = "0.2.4"
 
   enable_telemetry              = var.enable_telemetry
   name                          = module.naming.storage_account.name_unique

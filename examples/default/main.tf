@@ -115,7 +115,7 @@ module "test" {
   # Creates a new app service plan
   create_service_plan = true
   new_service_plan = {
-    sku_name = "B1"
+    name = module.naming.app_service_plan.name_unique
   }
 
 
