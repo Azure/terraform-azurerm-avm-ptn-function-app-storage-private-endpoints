@@ -1,6 +1,6 @@
 module "function_app" {
   source  = "Azure/avm-res-web-site/azurerm"
-  version = "0.9.0"
+  version = "0.9.1"
 
   enable_telemetry = var.enable_telemetry
 
@@ -12,6 +12,7 @@ module "function_app" {
   os_type = var.os_type
 
   public_network_access_enabled = false
+  https_only                    = var.https_only
 
   create_service_plan = var.create_service_plan
   new_service_plan    = var.new_service_plan

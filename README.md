@@ -246,6 +246,14 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_https_only"></a> [https\_only](#input\_https\_only)
+
+Description: Should the Function App only be accessible over HTTPS?
+
+Type: `bool`
+
+Default: `false`
+
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
 Description: The lock level to apply. Possible values are `CanNotDelete` and `ReadOnly`.
@@ -673,7 +681,7 @@ The following Modules are called:
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.9.0
+Version: 0.9.1
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 
@@ -685,7 +693,7 @@ Version: 0.1.2
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.2.2
+Version: 0.2.5
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
