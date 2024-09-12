@@ -121,13 +121,13 @@ module "test" {
   # Creates a new app service plan
   create_service_plan = true
   new_service_plan = {
-    sku_name = "B1"
+    name = module.naming.app_service_plan.name_unique
   }
 
 
   # Uses the avm-res-storage-storageaccount module to create a new storage account within root module
   create_secure_storage_account = true
-  function_app_storage_account = {
+  storage_account = {
     name                          = module.naming.storage_account.name_unique
     resource_group_name           = azurerm_resource_group.example.name
     public_network_access_enabled = true
