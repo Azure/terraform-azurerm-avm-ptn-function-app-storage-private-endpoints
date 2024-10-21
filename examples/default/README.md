@@ -58,21 +58,21 @@ resource "azurerm_resource_group" "example" {
 
 # A vnet is required for the private endpoint.
 resource "azurerm_virtual_network" "example" {
-  address_space       = ["192.168.0.0/24"]
+  address_space       = ["192.168.0.0/16"]
   location            = azurerm_resource_group.example.location
   name                = module.naming.virtual_network.name_unique
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_subnet" "example" {
-  address_prefixes     = ["192.168.0.0/25"]
+resource "azurerm_subnet" "private_endpoints" {
+  address_prefixes     = ["192.168.0.0/24"]
   name                 = module.naming.subnet.name_unique
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
 }
 
 resource "azurerm_subnet" "app_service" {
-  address_prefixes     = ["192.168.0.128/25"]
+  address_prefixes     = ["192.168.1.0/24"]
   name                 = "${module.naming.subnet.name_unique}-appservice"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
@@ -116,12 +116,13 @@ module "test" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  os_type = "Windows"
+  os_type = "Linux"
 
   # Creates a new app service plan
   create_service_plan = true
   new_service_plan = {
-    name = module.naming.app_service_plan.name_unique
+    name                   = module.naming.app_service_plan.name_unique
+    zone_balancing_enabled = false
   }
 
 
@@ -184,8 +185,21 @@ module "test" {
 
   private_dns_zone_resource_group_name = azurerm_resource_group.example.name
   private_dns_zone_subscription_id     = data.azurerm_client_config.this.subscription_id
-  private_endpoint_subnet_resource_id  = azurerm_subnet.example.id
+  private_endpoint_subnet_resource_id  = azurerm_subnet.private_endpoints.id
   virtual_network_subnet_id            = azurerm_subnet.app_service.id
+
+  site_config = {
+    ftps_state = "FtpsOnly"
+    always_on  = true
+    application_stack = {
+      stack_1 = {
+        node_version = "20"
+      }
+      # stack_2 = {
+      #   python_version = "3.11"
+      # }
+    }
+  }
 }
 ```
 
@@ -215,7 +229,7 @@ The following resources are used by this module:
 - [azurerm_log_analytics_workspace.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_resource_group.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_subnet.app_service](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
-- [azurerm_subnet.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
+- [azurerm_subnet.private_endpoints](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 - [azurerm_client_config.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)

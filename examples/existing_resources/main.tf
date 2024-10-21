@@ -136,20 +136,20 @@ module "avm_res_storage_storageaccount" {
       principal_id               = module.test.resource.identity[0].principal_id
     }
   }
-  # shares = {
-  #   function_app_share = {
-  #     name  = module.naming.storage_account.name_unique
-  #     quota = 1 # in GB
-  #   }
-  # }
+  shares = {
+    function_app_share = {
+      name  = module.naming.storage_account.name_unique
+      quota = 1 # in GB
+    }
+  }
 }
 
 resource "azurerm_service_plan" "example" {
   location            = azurerm_resource_group.example.location
   name                = module.naming.app_service_plan.name_unique
-  os_type             = "Windows"
+  os_type             = "Linux"
   resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "B1"
+  sku_name            = "S1"
 }
 
 module "public_ip" {
@@ -167,13 +167,30 @@ module "test" {
 
   enable_telemetry = var.enable_telemetry
 
-  name                = "${module.naming.function_app.name_unique}-secured" # TODO update with module.naming.<RESOURCE_TYPE>.name_unique
+  name                = "${module.naming.function_app.name_unique}-secured"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
   # Uses an existing app service plan
   os_type                  = azurerm_service_plan.example.os_type
   service_plan_resource_id = azurerm_service_plan.example.id
+
+  create_secure_storage_account = false
+  create_service_plan           = false
+
+  site_config = {
+    ftps_state = "FtpsOnly"
+    application_stack = {
+      stack_1 = {
+        node_version = "20"
+        # dotnet_version = "8.0"
+      }
+    }
+  }
+
+  # app_settings = {
+  #   "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = module.avm_res_storage_storageaccount.resource.primary_connection_string
+  # }
 
   application_insights = {
     name                  = module.naming.application_insights.name_unique
