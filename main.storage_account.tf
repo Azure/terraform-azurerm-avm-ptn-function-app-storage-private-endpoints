@@ -60,12 +60,14 @@ module "storage_account" {
     }
   }
 
-  # shares = {
-  #   function_app_share = {
-  #     name  = var.storage_account.name
-  #     quota = 1 # in GB
-  #   }
-  # }
+  shares = merge(var.storage_account.shares,
+    {
+      function_app_share = {
+        name  = coalesce(var.storage_contentshare_name, var.storage_account.name)
+        quota = 1 # in GB
+      }
+    }
+  )
 
   tags = var.tags
 }

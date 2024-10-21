@@ -783,6 +783,12 @@ variable "storage_account_name" {
   description = "The name of the existing Storage Account to deploy the Function App in."
 }
 
+variable "storage_contentshare_name" {
+  type        = string
+  default     = null
+  description = "The name of the existing Storage Account Content Share for the Function App to use."
+}
+
 variable "storage_account_primary_connection_string" {
   type        = string
   default     = null

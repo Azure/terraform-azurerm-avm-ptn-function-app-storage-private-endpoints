@@ -103,7 +103,7 @@ module "function_app" {
       AzureWebJobsStorage__tableServiceUri = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.table.core.windows.net" : "https://${var.storage_account_name}.table.core.windows.net"
 
       WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : var.storage_account_primary_connection_string
-      WEBSITE_CONTENTSHARE                     = var.create_secure_storage_account ? var.storage_account.name : var.storage_account_name
+      WEBSITE_CONTENTSHARE                     = var.create_secure_storage_account ? coalesce(var.storage_contentshare_name, var.storage_account.name) : var.storage_contentshare_name
 
       WEBSITE_CONTENTOVERVNET = 1
     }

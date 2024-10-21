@@ -2232,8 +2232,39 @@ object({
       index_document     = optional(string)
     }), null)
     shared_access_key_enabled = optional(bool, true)
-    min_tls_version           = optional(string, "TLS1_2")
-    nfsv3_enabled             = optional(bool, false)
+    shares = optional(map(object({
+      access_tier      = optional(string, "Hot")
+      enabled_protocol = optional(string)
+      metadata         = optional(map(string))
+      name             = string
+      quota            = number
+      root_squash      = optional(string)
+      signed_identifiers = optional(list(object({
+        id = string
+        access_policy = optional(object({
+          expiry_time = string
+          permission  = string
+          start_time  = string
+        }))
+      })))
+      role_assignments = optional(map(object({
+        role_definition_id_or_name             = string
+        principal_id                           = string
+        description                            = optional(string, null)
+        skip_service_principal_aad_check       = optional(bool, false)
+        condition                              = optional(string, null)
+        condition_version                      = optional(string, null)
+        delegated_managed_identity_resource_id = optional(string, null)
+      })), {})
+      timeouts = optional(object({
+        create = optional(string)
+        delete = optional(string)
+        read   = optional(string)
+        update = optional(string)
+      }))
+    })), {})
+    min_tls_version = optional(string, "TLS1_2")
+    nfsv3_enabled   = optional(bool, false)
     sas_policy = optional(object({
       expiration_action = optional(string, "Log")
       expiration_period = string
@@ -2269,6 +2300,14 @@ Default: `null`
 ### <a name="input_storage_account_primary_connection_string"></a> [storage\_account\_primary\_connection\_string](#input\_storage\_account\_primary\_connection\_string)
 
 Description: The primary connection string of the Storage Account to deploy the Function App in.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_storage_contentshare_name"></a> [storage\_contentshare\_name](#input\_storage\_contentshare\_name)
+
+Description: The name of the existing Storage Account Content Share for the Function App to use.
 
 Type: `string`
 
