@@ -24,7 +24,12 @@ output "resource_group" {
   value       = azurerm_resource_group.example.name
 }
 
+output "service_plan_name" {
+  description = "The name of the service plan."
+  value       = module.test.service_plan_resource.name
+}
+
 output "storage_account" {
   description = "The name of the storage account."
-  value       = module.test.storage_account_name
+  value       = module.test.storage_account_resource.name
 }

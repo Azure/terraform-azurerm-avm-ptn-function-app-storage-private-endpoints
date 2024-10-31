@@ -320,6 +320,10 @@ Description: The full output of the function app.
 
 Description: The resource group the resources were created in.
 
+### <a name="output_service_plan_name"></a> [service\_plan\_name](#output\_service\_plan\_name)
+
+Description: The name of the service plan.
+
 ### <a name="output_storage_account"></a> [storage\_account](#output\_storage\_account)
 
 Description: The name of the storage account.
