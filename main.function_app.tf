@@ -2,7 +2,7 @@
 
 module "function_app" {
   source  = "Azure/avm-res-web-site/azurerm"
-  version = "0.9.1"
+  version = "0.11.0"
 
   enable_telemetry = var.enable_telemetry
 
@@ -16,18 +16,17 @@ module "function_app" {
   public_network_access_enabled = var.public_network_access_enabled
   https_only                    = var.https_only
 
-  create_service_plan = var.create_service_plan
-  new_service_plan    = var.new_service_plan
+  # create_service_plan = var.create_service_plan
+  # new_service_plan    = var.new_service_plan
 
   # Existing service plan
-  service_plan_resource_id = var.service_plan_resource_id
+  service_plan_resource_id = var.create_service_plan ? module.service_plan[0].resource_id : var.service_plan_resource_id
 
   # Uses external storage account module call, which creates a new storage account. References the name of the new storage account.
-  function_app_create_storage_account            = false
-  function_app_storage_account_name              = var.create_secure_storage_account ? module.storage_account[0].name : var.storage_account_name
-  function_app_storage_uses_managed_identity     = true
+  storage_account_name                           = var.create_secure_storage_account ? module.storage_account[0].name : var.storage_account_name
+  storage_uses_managed_identity                  = true
   virtual_network_subnet_id                      = var.virtual_network_subnet_id
-  function_app_storage_account_access_key        = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : coalesce(var.storage_account_access_key, var.storage_account_primary_connection_string)
+  storage_account_access_key                     = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : coalesce(var.storage_account_access_key, var.storage_account_primary_connection_string)
   tags                                           = var.tags
   zip_deploy_file                                = var.zip_deploy_file
   timeouts                                       = var.timeouts
@@ -65,27 +64,24 @@ module "function_app" {
   diagnostic_settings  = var.diagnostic_settings
   role_assignments     = var.role_assignments
 
-  private_endpoints = merge(
-    var.private_endpoints,
-    {
-      primary = {
-        name                          = "pe-${var.name}"
-        private_dns_zone_resource_ids = var.private_dns_zones == null || length(var.private_dns_zones) < 1 ? ["/subscriptions/${var.private_dns_zone_subscription_id}/resourceGroups/${var.private_dns_zone_resource_group_name}/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"] : [module.private_dns_zone[var.zone_key_for_link].resource.id]
-        subnet_resource_id            = var.private_endpoint_subnet_resource_id
-        tags                          = var.tags
-      }
-    }
-  )
+  private_endpoints = var.private_endpoints
+
+  # private_endpoints = merge(
+  #   var.private_endpoints,
+  #   {
+  #     primary = {
+  #       name                          = "pe-${var.name}"
+  #       private_dns_zone_resource_ids = var.private_dns_zones == null || length(var.private_dns_zones) < 1 ? ["/subscriptions/${var.private_dns_zone_subscription_id}/resourceGroups/${var.private_dns_zone_resource_group_name}/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"] : [module.private_dns_zone[var.zone_key_for_link].resource.id]
+  #       subnet_resource_id            = var.private_endpoint_subnet_resource_id
+  #       tags                          = var.tags
+  #     }
+  #   }
+  # )
+
   private_endpoints_inherit_lock          = var.private_endpoints_inherit_lock
   private_endpoints_manage_dns_zone_group = var.private_endpoints_manage_dns_zone_group
 
-  site_config = merge(
-    var.site_config,
-    {
-      # application_insights_connection_string = ""
-      vnet_route_all_enabled = true
-    }
-  )
+  site_config = var.site_config
 
   deployment_slots              = var.deployment_slots
   app_service_active_slot       = var.app_service_active_slot
@@ -95,17 +91,18 @@ module "function_app" {
   app_settings = merge(
     var.app_settings,
     {
-
       # these are used by managed identity, but MI can only be used on dedicated plans, not on elastic premium
       # ref: # https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings     
       AzureWebJobsStorage__blobServiceUri  = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.blob.core.windows.net" : "https://${var.storage_account_name}.blob.core.windows.net"
       AzureWebJobsStorage__queueServiceUri = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.queue.core.windows.net" : "https://${var.storage_account_name}.queue.core.windows.net"
       AzureWebJobsStorage__tableServiceUri = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.table.core.windows.net" : "https://${var.storage_account_name}.table.core.windows.net"
 
+      # AzureWebJobsStorage = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : var.storage_account_primary_connection_string
       WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : var.storage_account_primary_connection_string
       WEBSITE_CONTENTSHARE                     = var.create_secure_storage_account ? coalesce(var.storage_contentshare_name, var.storage_account.name) : var.storage_contentshare_name
 
       WEBSITE_CONTENTOVERVNET = 1
+      WEBSITE_VNET_ROUTE_ALL  = 1
     }
   )
 }

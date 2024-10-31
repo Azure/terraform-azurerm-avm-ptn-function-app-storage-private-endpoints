@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.6.1"
+  required_version = ">= 1.7.0"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -47,7 +47,7 @@ data "azurerm_client_config" "this" {}
 # This is required for resource modules
 resource "azurerm_resource_group" "example" {
   location = local.azure_regions[random_integer.region_index.result]
-  name     = "${module.naming.resource_group.name_unique}-default-secured"
+  name     = "${module.naming.resource_group.name_unique}-secure-storage-default"
 }
 
 # A vnet is required for the private endpoint.
@@ -60,9 +60,10 @@ resource "azurerm_virtual_network" "example" {
 
 resource "azurerm_subnet" "private_endpoints" {
   address_prefixes     = ["192.168.0.0/24"]
-  name                 = module.naming.subnet.name_unique
+  name                 = "${module.naming.subnet.name_unique}-privateendpoints"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
+  service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_subnet" "app_service" {
@@ -114,25 +115,34 @@ module "test" {
 
   # Creates a new app service plan
   create_service_plan = true
-  new_service_plan = {
-    name                   = module.naming.app_service_plan.name_unique
-    zone_balancing_enabled = false
+  service_plan = {
+    name = module.naming.app_service_plan.name_unique
+    # zone_balancing_enabled = false
   }
 
 
   # Uses the avm-res-storage-storageaccount module to create a new storage account within root module
   create_secure_storage_account = true
   storage_account = {
-    name                          = module.naming.storage_account.name_unique
-    resource_group_name           = azurerm_resource_group.example.name
-    public_network_access_enabled = true
+    name                = module.naming.storage_account.name_unique
+    resource_group_name = azurerm_resource_group.example.name
     network_rules = {
       bypass                     = ["AzureServices"]
       default_action             = "Deny"
       ip_rules                   = [try(module.public_ip[0].public_ip, var.bypass_ip_cidr)]
-      virtual_network_subnet_ids = toset([azurerm_subnet.app_service.id])
+      virtual_network_subnet_ids = toset([azurerm_subnet.app_service.id, azurerm_subnet.private_endpoints.id])
+    }
+    shares = {
+      share_1 = {
+        name  = module.naming.storage_account.name_unique
+        quota = 10
+      }
     }
   }
+
+  storage_contentshare_name = module.naming.storage_account.name_unique
+
+  public_network_access_enabled = true
 
   application_insights = {
     name                  = module.naming.application_insights.name_unique
@@ -148,39 +158,67 @@ module "test" {
   # Creates the private dns zones via avm-res-network-privatednszone module
   private_dns_zones = {
     blob = {
-      domain_name         = "blob.core.windows.net"
-      resource_group_name = azurerm_resource_group.example.name
-    },
-    file = {
-      domain_name         = "file.core.windows.net"
-      resource_group_name = azurerm_resource_group.example.name
-    },
-    queue = {
-      domain_name         = "queue.core.windows.net"
-      resource_group_name = azurerm_resource_group.example.name
-    },
-    table = {
-      domain_name         = "table.core.windows.net"
-      resource_group_name = azurerm_resource_group.example.name
-    },
-    function_app = {
-      domain_name         = "privatelink.azurewebsites.net"
+      domain_name         = "privatelink.blob.core.windows.net"
       resource_group_name = azurerm_resource_group.example.name
       virtual_network_links = {
         example = {
-          vnetlinkname = "${azurerm_virtual_network.example.name}-link"
+          vnetlinkname = "privatelink.blob.core.windows.net-link"
+          vnetid       = azurerm_virtual_network.example.id
+        }
+      }
+    },
+    file = {
+      domain_name         = "privatelink.file.core.windows.net"
+      resource_group_name = azurerm_resource_group.example.name
+      virtual_network_links = {
+        example = {
+          vnetlinkname = "privatelink.file.core.windows.net-link"
+          vnetid       = azurerm_virtual_network.example.id
+        }
+      }
+    },
+    queue = {
+      domain_name         = "privatelink.queue.core.windows.net"
+      resource_group_name = azurerm_resource_group.example.name
+      virtual_network_links = {
+        example = {
+          vnetlinkname = "privatelink.queue.core.windows.net-link"
+          vnetid       = azurerm_virtual_network.example.id
+        }
+      }
+    },
+    table = {
+      domain_name         = "privatelink.table.core.windows.net"
+      resource_group_name = azurerm_resource_group.example.name
+      virtual_network_links = {
+        example = {
+          vnetlinkname = "privatelink.table.core.windows.net-link"
           vnetid       = azurerm_virtual_network.example.id
         }
       }
     }
+    # function_app = {
+    #   domain_name         = "privatelink.azurewebsites.net"
+    #   resource_group_name = azurerm_resource_group.example.name
+    #   virtual_network_links = {
+    #     example = {
+    #       vnetlinkname = "${azurerm_virtual_network.example.name}-link"
+    #       vnetid       = azurerm_virtual_network.example.id
+    #     }
+    #   }
+    # }
   }
 
-  zone_key_for_link = "function_app"
+  # zone_key_for_link = "function_app"
 
   private_dns_zone_resource_group_name = azurerm_resource_group.example.name
   private_dns_zone_subscription_id     = data.azurerm_client_config.this.subscription_id
   private_endpoint_subnet_resource_id  = azurerm_subnet.private_endpoints.id
   virtual_network_subnet_id            = azurerm_subnet.app_service.id
+
+  app_settings = {
+
+  }
 
   site_config = {
     ftps_state = "FtpsOnly"
@@ -189,9 +227,6 @@ module "test" {
       stack_1 = {
         node_version = "20"
       }
-      # stack_2 = {
-      #   python_version = "3.11"
-      # }
     }
   }
 }

@@ -698,7 +698,7 @@ Default: `true`
 
 ### <a name="input_create_service_plan"></a> [create\_service\_plan](#input\_create\_service\_plan)
 
-Description: Should the module create a new App Service Plan for the Function App? Defaults to `true`.
+Description: Should a service plan be created for the Function App? Defaults to `true`.
 
 Type: `bool`
 
@@ -1185,7 +1185,7 @@ map(object({
         virtual_network_subnet_id = optional(string)
         headers = optional(map(object({
           x_azure_fdid      = optional(list(string))
-          x_fd_health_probe = optional(number)
+          x_fd_health_probe = optional(list(string), ["1"])
           x_forwarded_for   = optional(list(string))
           x_forwarded_host  = optional(list(string))
         })), {})
@@ -1199,7 +1199,7 @@ map(object({
         virtual_network_subnet_id = optional(string)
         headers = optional(map(object({
           x_azure_fdid      = optional(list(string))
-          x_fd_health_probe = optional(number)
+          x_fd_health_probe = optional(list(string), ["1"])
           x_forwarded_for   = optional(list(string))
           x_forwarded_host  = optional(list(string))
         })), {})
@@ -1657,6 +1657,54 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_service_plan"></a> [service\_plan](#input\_service\_plan)
+
+Description:   A map of objects that represent a new App Service Plan to create for the Function App.
+
+  - `name` - (Optional) The name of the App Service Plan.
+  - `resource_group_name` - (Optional) The name of the resource group to deploy the App Service Plan in.
+  - `location` - (Optional) The Azure region where the App Service Plan will be deployed. Defaults to the location of the resource group.
+  - `sku_name` - (Optional) The SKU name of the App Service Plan. Defaults to `P1v2`.
+  > Possible values include `B1`, `B2`, `B3`, `D1`, `F1`, `I1`, `I2`, `I3`, `I1v2`, `I2v2`, `I3v2`, `I4v2`, `I5v2`, `I6v2`, `P1v2`, `P2v2`, `P3v2`, `P0v3`, `P1v3`,`P2v3`, `P3v3`, `P1mv3`, `P2mv3`, `P3mv3`, `P4mv3`, `P5mv3`, `S1`, `S2`, `S3`, `SHARED`, `EP1`, `EP2`, `EP3`, `FC1`, `WS1`, `WS2`, `WS3`, and `Y1`.
+  - `app_service_environment_resource_id` - (Optional) The resource ID of the App Service Environment to deploy the App Service Plan in.
+  - `maximum_elastic_worker_count` - (Optional) The maximum number of workers that can be allocated to Elastic SKU Plan. Cannot be set unless using an Elastic SKU.
+  - `worker_count` - (Optional) The number of workers to allocate to this App Service Plan. Defaults to `3`.
+  - `per_site_scaling_enabled` - (Optional) Should per site scaling be enabled for the App Service Plan? Defaults to `false`.
+  - `zone_balancing_enabled` - (Optional) Should zone balancing be enabled for the App Service Plan? Changing this forces a new resource to be created.
+  > **NOTE:** If this setting is set to `true` and the `worker_count` value is specified, it should be set to a multiple of the number of availability zones in the region. Please see the Azure documentation for the number of Availability Zones in your region.
+
+Type:
+
+```hcl
+object({
+    name                                = optional(string)
+    resource_group_name                 = optional(string)
+    location                            = optional(string)
+    sku_name                            = optional(string, "P1v2")
+    app_service_environment_resource_id = optional(string)
+    maximum_elastic_worker_count        = optional(number)
+    worker_count                        = optional(number, 3)
+    per_site_scaling_enabled            = optional(bool, false)
+    zone_balancing_enabled              = optional(bool, true)
+    lock = optional(object({
+      kind = string
+      name = optional(string, null)
+    }), null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
+    })), {})
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_service_plan_resource_id"></a> [service\_plan\_resource\_id](#input\_service\_plan\_resource\_id)
 
 Description: The resource ID of the App Service Plan to deploy the Function App in.
@@ -1795,7 +1843,7 @@ object({
     scm_minimum_tls_version                       = optional(string, "1.2")           #(Optional) Configures the minimum version of TLS required for SSL requests to Kudu. Possible values include: 1.0, 1.1, and 1.2. Defaults to 1.2.
     scm_use_main_ip_restriction                   = optional(bool, false)             #(Optional) Should the SCM use the same IP restrictions as the main site. Defaults to false.
     use_32_bit_worker                             = optional(bool, false)             #(Optional) Should the 32-bit worker process be used. Defaults to false.
-    vnet_route_all_enabled                        = optional(bool, false)             #(Optional) Should all traffic be routed to the virtual network. Defaults to false.
+    vnet_route_all_enabled                        = optional(bool, true)              #(Optional) Should all traffic be routed to the virtual network. Defaults to false.
     websockets_enabled                            = optional(bool, false)             #(Optional) Should Websockets be enabled. Defaults to false.
     worker_count                                  = optional(number)                  #(Optional) The number of workers for this Windows Function App. Only affects apps on an Elastic Premium plan.
     app_service_logs = optional(map(object({
@@ -1845,7 +1893,7 @@ object({
       virtual_network_subnet_id = optional(string)
       headers = optional(map(object({
         x_azure_fdid      = optional(list(string))
-        x_fd_health_probe = optional(number)
+        x_fd_health_probe = optional(list(string), ["1"])
         x_forwarded_for   = optional(list(string))
         x_forwarded_host  = optional(list(string))
       })), {})
@@ -1859,7 +1907,7 @@ object({
       virtual_network_subnet_id = optional(string)
       headers = optional(map(object({
         x_azure_fdid      = optional(list(string))
-        x_fd_health_probe = optional(number)
+        x_fd_health_probe = optional(list(string), ["1"])
         x_forwarded_for   = optional(list(string))
         x_forwarded_host  = optional(list(string))
       })), {})
@@ -2446,9 +2494,13 @@ Description: This is the full output for the resource.
 
 Description: This is the full output for the resource.
 
-### <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name)
+### <a name="output_service_plan_resource"></a> [service\_plan\_resource](#output\_service\_plan\_resource)
 
-Description: This is the name of the storage account.
+Description: This is the name of the service plan.
+
+### <a name="output_storage_account_resource"></a> [storage\_account\_resource](#output\_storage\_account\_resource)
+
+Description: This is the full output for the storage account.
 
 ## Modules
 
@@ -2458,13 +2510,19 @@ The following Modules are called:
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.9.1
+Version: 0.11.0
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
 Version: 0.1.2
+
+### <a name="module_service_plan"></a> [service\_plan](#module\_service\_plan)
+
+Source: Azure/avm-res-web-serverfarm/azurerm
+
+Version: 0.2.0
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 

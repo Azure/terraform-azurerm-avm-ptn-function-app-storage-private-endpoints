@@ -25,7 +25,13 @@ output "resource_id" {
   value       = module.function_app.resource.id
 }
 
-output "storage_account_name" {
-  description = "This is the name of the storage account."
-  value       = var.create_secure_storage_account ? module.storage_account[0].name : null
+output "service_plan_resource" {
+  description = "This is the name of the service plan."
+  value       = var.create_service_plan ? module.service_plan[0].resource : null
+}
+
+output "storage_account_resource" {
+  description = "This is the full output for the storage account."
+  sensitive   = true
+  value       = var.create_secure_storage_account ? module.storage_account[0].resource : null
 }
