@@ -10,7 +10,7 @@ variable "storage_account" {
     resource_group_name              = optional(string)
     access_tier                      = optional(string, "Hot")
     account_kind                     = optional(string, "StorageV2")
-    account_replication_type         = optional(string, "LRS")
+    account_replication_type         = optional(string, "ZRS")
     allow_nested_items_to_be_public  = optional(bool, false)
     allowed_copy_scope               = optional(string, null)
     cross_tenant_replication_enabled = optional(bool, false)

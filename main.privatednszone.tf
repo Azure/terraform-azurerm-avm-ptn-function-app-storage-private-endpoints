@@ -6,12 +6,9 @@ module "private_dns_zone" {
 
   enable_telemetry = var.enable_telemetry
 
-  domain_name         = each.value.domain_name
-  resource_group_name = each.value.resource_group_name
-  tags                = each.value.tags
-
-  a_records = each.value.a_records
-
+  domain_name           = each.value.domain_name
+  resource_group_name   = each.value.resource_group_name
+  tags                  = each.value.tags
+  a_records             = each.value.a_records
   virtual_network_links = each.value.virtual_network_links
-
 }

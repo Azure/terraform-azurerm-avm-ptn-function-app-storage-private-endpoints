@@ -18,7 +18,6 @@ terraform {
   }
 }
 
-# tflint-ignore: terraform_module_provider_declaration, terraform_output_separate, terraform_variable_separate
 provider "azurerm" {
   features {
     resource_group {
@@ -27,20 +26,16 @@ provider "azurerm" {
   }
 }
 
-
-## Section to provide a random Azure region for the resource group
-# This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
   version = ">= 0.3.0"
 }
 
-# This allows us to randomize the region for the resource group.
 resource "random_integer" "region_index" {
   max = length(local.azure_regions) - 1
   min = 0
 }
-## End of section to provide a random Azure region for the resource group
+
 
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
@@ -50,13 +45,11 @@ module "naming" {
 
 data "azurerm_client_config" "this" {}
 
-# This is required for resource modules
 resource "azurerm_resource_group" "example" {
   location = local.azure_regions[random_integer.region_index.result]
   name     = "${module.naming.resource_group.name_unique}-secure-storage-default"
 }
 
-# A vnet is required for the private endpoint.
 resource "azurerm_virtual_network" "example" {
   address_space       = ["192.168.0.0/16"]
   location            = azurerm_resource_group.example.location
@@ -89,7 +82,6 @@ resource "azurerm_subnet" "app_service" {
   }
 }
 
-# LAW for Application Insights
 resource "azurerm_log_analytics_workspace" "example" {
   location            = azurerm_resource_group.example.location
   name                = "law-test-001"
@@ -103,6 +95,23 @@ module "public_ip" {
 
   source  = "lonegunmanb/public-ip/lonegunmanb"
   version = "0.1.0"
+}
+
+# Should you want the function app to be secured by private endpoints, you can use the following code:
+module "function_app_private_dns_zone" {
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.1.2"
+
+  enable_telemetry = var.enable_telemetry
+
+  domain_name         = "privatelink.azurewebsites.net"
+  resource_group_name = azurerm_resource_group.example.name
+  virtual_network_links = {
+    example = {
+      vnetlinkname = "${azurerm_virtual_network.example.name}-link"
+      vnetid       = azurerm_virtual_network.example.id
+    }
+  }
 }
 
 module "test" {
@@ -127,7 +136,7 @@ module "test" {
   }
 
 
-  # Uses the avm-res-storage-storageaccount module to create a new storage account within root module
+  # Uses the avm-res-storage-storageaccount module to create a new storage account 
   create_secure_storage_account = true
   storage_account = {
     name                = module.naming.storage_account.name_unique
@@ -147,8 +156,6 @@ module "test" {
   }
 
   storage_contentshare_name = module.naming.storage_account.name_unique
-
-  public_network_access_enabled = true
 
   application_insights = {
     name                  = module.naming.application_insights.name_unique
@@ -203,24 +210,25 @@ module "test" {
         }
       }
     }
-    # function_app = {
-    #   domain_name         = "privatelink.azurewebsites.net"
-    #   resource_group_name = azurerm_resource_group.example.name
-    #   virtual_network_links = {
-    #     example = {
-    #       vnetlinkname = "${azurerm_virtual_network.example.name}-link"
-    #       vnetid       = azurerm_virtual_network.example.id
-    #     }
-    #   }
-    # }
-  }
 
-  # zone_key_for_link = "function_app"
+  }
 
   private_dns_zone_resource_group_name = azurerm_resource_group.example.name
   private_dns_zone_subscription_id     = data.azurerm_client_config.this.subscription_id
   private_endpoint_subnet_resource_id  = azurerm_subnet.private_endpoints.id
   virtual_network_subnet_id            = azurerm_subnet.app_service.id
+
+  # Should you want the function app to be secured by private endpoints, you can use the following code:
+  private_endpoints = {
+    primary = {
+      name                          = "pe-${module.naming.function_app.name_unique}-secured-default"
+      private_dns_zone_resource_ids = [module.function_app_private_dns_zone.resource.id]
+      subnet_resource_id            = azurerm_subnet.private_endpoints.id
+    }
+  }
+
+  # Should you want the function app to be publicly accessible, you can use the following code:
+  # public_network_access_enabled = true
 
   app_settings = {
 
@@ -235,6 +243,94 @@ module "test" {
       }
     }
   }
+}
+
+# Virtual machine to use for private endpoint testing:
+resource "random_integer" "zone_index" {
+  max = length(module.regions.regions_by_name[local.azure_regions[random_integer.region_index.result]].zones)
+  min = 1
+}
+
+resource "azurerm_network_security_group" "example" {
+  location            = azurerm_resource_group.example.location
+  name                = module.naming.network_security_group.name_unique
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_network_security_rule" "example" {
+  access                      = "Allow"
+  direction                   = "Inbound"
+  name                        = "AllowAllRDPInbound"
+  network_security_group_name = azurerm_network_security_group.example.name
+  priority                    = 100
+  protocol                    = "Tcp"
+  resource_group_name         = azurerm_resource_group.example.name
+  destination_address_prefix  = "*"
+  destination_port_range      = "3389"
+  source_address_prefix       = "*"
+  source_port_range           = "*"
+}
+
+# Create the virtual machine
+module "avm_res_compute_virtualmachine" {
+  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
+  version = "0.16.0"
+
+  enable_telemetry = false
+
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  name                = "${module.naming.virtual_machine.name_unique}-tf"
+  sku_size            = module.avm_res_compute_virtualmachine_sku_selector.sku
+  os_type             = "Windows"
+
+  zone = random_integer.zone_index.result
+
+  generate_admin_password_or_ssh_key = false
+  admin_username                     = "TestAdmin"
+  admin_password                     = "P@ssw0rd1234!"
+
+  source_image_reference = {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  network_interfaces = {
+    network_interface_1 = {
+      name = "nic-${module.naming.network_interface.name_unique}-tf"
+      ip_configurations = {
+        ip_configuration_1 = {
+          name                          = "${module.naming.network_interface.name_unique}-ipconfig1-public"
+          private_ip_subnet_resource_id = azurerm_subnet.private_endpoints.id
+          create_public_ip_address      = true
+          public_ip_address_name        = "pip-${module.naming.virtual_machine.name_unique}-tf"
+          is_primary_ipconfiguration    = true
+        }
+      }
+      network_security_groups = {
+        group1 = {
+          network_security_group_resource_id = azurerm_network_security_group.example.id
+        }
+      }
+    }
+  }
+
+  provision_vm_agent         = false
+  allow_extension_operations = false
+
+  tags = {
+
+  }
+
+}
+
+module "avm_res_compute_virtualmachine_sku_selector" {
+  source  = "Azure/avm-res-compute-virtualmachine/azurerm//modules/sku_selector"
+  version = "0.16.0"
+
+  deployment_region = azurerm_resource_group.example.location
 }
 ```
 
@@ -262,11 +358,14 @@ The following providers are used by this module:
 The following resources are used by this module:
 
 - [azurerm_log_analytics_workspace.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
+- [azurerm_network_security_group.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_group) (resource)
+- [azurerm_network_security_rule.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_rule) (resource)
 - [azurerm_resource_group.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_subnet.app_service](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.private_endpoints](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [random_integer.zone_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 - [azurerm_client_config.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -331,6 +430,24 @@ Description: The name of the storage account.
 ## Modules
 
 The following Modules are called:
+
+### <a name="module_avm_res_compute_virtualmachine"></a> [avm\_res\_compute\_virtualmachine](#module\_avm\_res\_compute\_virtualmachine)
+
+Source: Azure/avm-res-compute-virtualmachine/azurerm
+
+Version: 0.16.0
+
+### <a name="module_avm_res_compute_virtualmachine_sku_selector"></a> [avm\_res\_compute\_virtualmachine\_sku\_selector](#module\_avm\_res\_compute\_virtualmachine\_sku\_selector)
+
+Source: Azure/avm-res-compute-virtualmachine/azurerm//modules/sku_selector
+
+Version: 0.16.0
+
+### <a name="module_function_app_private_dns_zone"></a> [function\_app\_private\_dns\_zone](#module\_function\_app\_private\_dns\_zone)
+
+Source: Azure/avm-res-network-privatednszone/azurerm
+
+Version: 0.1.2
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 

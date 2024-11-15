@@ -10,6 +10,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.6.1)
 
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (>= 1.0)
+
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.114.0)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
@@ -19,6 +21,8 @@ The following requirements are needed by this module:
 ## Providers
 
 The following providers are used by this module:
+
+- <a name="provider_azapi"></a> [azapi](#provider\_azapi) (>= 1.0)
 
 - <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.114.0)
 
@@ -30,6 +34,7 @@ The following providers are used by this module:
 
 The following resources are used by this module:
 
+- [azapi_update_resource.this](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/update_resource) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azurerm_client_config.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
@@ -1920,7 +1925,7 @@ object({
     resource_group_name              = optional(string)
     access_tier                      = optional(string, "Hot")
     account_kind                     = optional(string, "StorageV2")
-    account_replication_type         = optional(string, "LRS")
+    account_replication_type         = optional(string, "ZRS")
     allow_nested_items_to_be_public  = optional(bool, false)
     allowed_copy_scope               = optional(string, null)
     cross_tenant_replication_enabled = optional(bool, false)

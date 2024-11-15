@@ -229,17 +229,17 @@ module "test" {
       domain_name         = "table.core.windows.net"
       resource_group_name = azurerm_resource_group.example.name
     },
-    function_app = {
-      domain_name         = "privatelink.azurewebsites.net"
-      resource_group_name = azurerm_resource_group.example.name
-      virtual_network_links = {
-        example = {
-          vnetlinkname = "${azurerm_virtual_network.example.name}-link"
-          vnetid       = azurerm_virtual_network.example.id
-        }
-      }
-    }
+    # function_app = {
+    #   domain_name         = "privatelink.azurewebsites.net"
+    #   resource_group_name = azurerm_resource_group.example.name
+    #   virtual_network_links = {
+    #     example = {
+    #       vnetlinkname = "${azurerm_virtual_network.example.name}-link"
+    #       vnetid       = azurerm_virtual_network.example.id
+    #     }
+    #   }
+    # }
   }
 
-  zone_key_for_link = "function_app"
+  # zone_key_for_link = "function_app"
 }

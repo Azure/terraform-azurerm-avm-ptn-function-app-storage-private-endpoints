@@ -1,28 +1,17 @@
-# New branch, commit, and push for AVM-Review-PR
-
 module "function_app" {
   source  = "Azure/avm-res-web-site/azurerm"
   version = "0.11.0"
 
   enable_telemetry = var.enable_telemetry
 
-  name                = var.name
-  resource_group_name = var.resource_group_name
-  location            = var.location
-
-  kind    = "functionapp"
-  os_type = var.os_type
-
-  public_network_access_enabled = var.public_network_access_enabled
-  https_only                    = var.https_only
-
-  # create_service_plan = var.create_service_plan
-  # new_service_plan    = var.new_service_plan
-
-  # Existing service plan
-  service_plan_resource_id = var.create_service_plan ? module.service_plan[0].resource_id : var.service_plan_resource_id
-
-  # Uses external storage account module call, which creates a new storage account. References the name of the new storage account.
+  name                                           = var.name
+  resource_group_name                            = var.resource_group_name
+  location                                       = var.location
+  kind                                           = "functionapp"
+  os_type                                        = var.os_type
+  public_network_access_enabled                  = var.public_network_access_enabled
+  https_only                                     = var.https_only
+  service_plan_resource_id                       = var.create_service_plan ? module.service_plan[0].resource_id : var.service_plan_resource_id
   storage_account_name                           = var.create_secure_storage_account ? module.storage_account[0].name : var.storage_account_name
   storage_uses_managed_identity                  = true
   virtual_network_subnet_id                      = var.virtual_network_subnet_id
@@ -53,39 +42,20 @@ module "function_app" {
   functions_extension_version                    = var.functions_extension_version
   key_vault_reference_identity_id                = var.key_vault_reference_identity_id
   webdeploy_publish_basic_authentication_enabled = var.webdeploy_publish_basic_authentication_enabled
-
-  lock = var.lock
-
+  lock                                           = var.lock
   managed_identities = {
     system_assigned = true
   }
-
-  application_insights = var.application_insights
-  diagnostic_settings  = var.diagnostic_settings
-  role_assignments     = var.role_assignments
-
-  private_endpoints = var.private_endpoints
-
-  # private_endpoints = merge(
-  #   var.private_endpoints,
-  #   {
-  #     primary = {
-  #       name                          = "pe-${var.name}"
-  #       private_dns_zone_resource_ids = var.private_dns_zones == null || length(var.private_dns_zones) < 1 ? ["/subscriptions/${var.private_dns_zone_subscription_id}/resourceGroups/${var.private_dns_zone_resource_group_name}/providers/Microsoft.Network/privateDnsZones/privatelink.azurewebsites.net"] : [module.private_dns_zone[var.zone_key_for_link].resource.id]
-  #       subnet_resource_id            = var.private_endpoint_subnet_resource_id
-  #       tags                          = var.tags
-  #     }
-  #   }
-  # )
-
+  application_insights                    = var.application_insights
+  diagnostic_settings                     = var.diagnostic_settings
+  role_assignments                        = var.role_assignments
+  private_endpoints                       = var.private_endpoints
   private_endpoints_inherit_lock          = var.private_endpoints_inherit_lock
   private_endpoints_manage_dns_zone_group = var.private_endpoints_manage_dns_zone_group
-
-  site_config = var.site_config
-
-  deployment_slots              = var.deployment_slots
-  app_service_active_slot       = var.app_service_active_slot
-  deployment_slots_inherit_lock = var.deployment_slots_inherit_lock
+  site_config                             = var.site_config
+  deployment_slots                        = var.deployment_slots
+  app_service_active_slot                 = var.app_service_active_slot
+  deployment_slots_inherit_lock           = var.deployment_slots_inherit_lock
 
   # https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings
   app_settings = merge(
@@ -97,13 +67,29 @@ module "function_app" {
       AzureWebJobsStorage__queueServiceUri = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.queue.core.windows.net" : "https://${var.storage_account_name}.queue.core.windows.net"
       AzureWebJobsStorage__tableServiceUri = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.table.core.windows.net" : "https://${var.storage_account_name}.table.core.windows.net"
 
-      # AzureWebJobsStorage = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : var.storage_account_primary_connection_string
       WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : var.storage_account_primary_connection_string
       WEBSITE_CONTENTSHARE                     = var.create_secure_storage_account ? coalesce(var.storage_contentshare_name, var.storage_account.name) : var.storage_contentshare_name
 
-      WEBSITE_CONTENTOVERVNET = 1
+      # Although `WEBSITE_CONTENTOVERVNET` has been superseded by `vnetContentShareEnabled` site setting, there is currently no way to configure this setting in greenfield scenario.
+      # Therefore, we are setting both settings to ensure compatibility with existing configurations.
+      WEBSITE_CONTENTOVERVNET = var.content_share_force_disabled != true ? 1 : 0
       WEBSITE_VNET_ROUTE_ALL  = 1
     }
   )
+}
+
+# Toggle on `vnetContentShareEnabled` site property.
+# This property cannot be set through Terraform currently, so we are using the `azapi_update_resource` resource to set it after deployment. 
+# `WEBSITE_CONTENTOVERVNET` app setting is still needed for greenfield deployments.
+resource "azapi_update_resource" "this" {
+  count = var.content_share_force_disabled != true ? 1 : 0
+
+  type = "Microsoft.Web/sites@2022-03-01"
+  body = jsonencode({
+    properties = {
+      vnetContentShareEnabled = true
+    }
+  })
+  resource_id = module.function_app.resource_id
 }
 

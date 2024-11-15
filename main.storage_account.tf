@@ -1,5 +1,6 @@
 module "storage_account" {
-  count   = var.create_secure_storage_account ? 1 : 0
+  count = var.create_secure_storage_account ? 1 : 0
+
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "0.2.4"
 
@@ -12,7 +13,7 @@ module "storage_account" {
   resource_group_name           = coalesce(var.storage_account.resource_group_name, var.resource_group_name)
   location                      = var.location
   public_network_access_enabled = var.storage_account.public_network_access_enabled
-  # this is necessary as managed identity does work with Elastic Premium Plans due to missing authentication support in Azure Files
+  # this is necessary as managed identity does not work with Elastic Premium Plans due to missing authentication support in Azure Files
   shared_access_key_enabled          = var.storage_account.shared_access_key_enabled
   storage_management_policy_rule     = var.storage_account.storage_management_policy_rule
   storage_management_policy_timeouts = var.storage_account.storage_management_policy_timeouts
@@ -33,7 +34,6 @@ module "storage_account" {
   routing                            = var.storage_account.routing
   sftp_enabled                       = var.storage_account.sftp_enabled
   cross_tenant_replication_enabled   = var.storage_account.cross_tenant_replication_enabled
-
   private_endpoints = {
     for endpoint in local.endpoints :
     endpoint => {
@@ -44,7 +44,6 @@ module "storage_account" {
       tags                          = var.tags
     }
   }
-
   role_assignments = {
     storage_blob_data_owner = {
       role_definition_id_or_name = "Storage Blob Data Owner"
@@ -59,17 +58,6 @@ module "storage_account" {
       principal_id               = module.function_app.resource.identity[0].principal_id
     }
   }
-
-  # shares = merge(var.storage_account.shares,
-  #   {
-  #     function_app_share = {
-  #       name  = coalesce(var.storage_contentshare_name, var.storage_account.name)
-  #       quota = 1 # in GB
-  #     }
-  #   }
-  # )
-
   shares = length(var.storage_account.shares) > 0 ? local.var_shares : local.shares
-
-  tags = var.tags
+  tags   = var.tags
 }
