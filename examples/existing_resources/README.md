@@ -1,6 +1,8 @@
 <!-- BEGIN_TF_DOCS -->
 # Referencing existing resources
 
+## Example is still a work-in-progress
+
 This deploys an example showing the pattern referencing existing resources or resources created outside of the `avm-res-web-site` module
 
 ```hcl
@@ -75,7 +77,7 @@ resource "azurerm_subnet" "app_service" {
 
 module "avm_res_storage_storageaccount" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.2.4"
+  version = "0.5.0"
 
   enable_telemetry              = var.enable_telemetry
   name                          = module.naming.storage_account.name_unique
@@ -310,7 +312,7 @@ The following Modules are called:
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.2.4
+Version: 0.5.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
