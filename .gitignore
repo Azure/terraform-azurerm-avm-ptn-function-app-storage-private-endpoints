@@ -39,10 +39,12 @@ avmmakefile
 README-generated.md
 avm.tflint.hcl
 avm.tflint_example.hcl
-avm.tflint_module.hcl
-*.md.tmp
 *tfplan*
+*.md.tmp
+
+# MacOS
 .DS_Store
 avm.tflint.merged.hcl
 avm.tflint_example.merged.hcl
+avm.tflint_module.hcl
 avm.tflint_module.merged.hcl

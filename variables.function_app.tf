@@ -98,7 +98,7 @@ variable "application_insights" {
 
 variable "auth_settings" {
   type = map(object({
-    additional_login_parameters    = optional(list(string))
+    additional_login_parameters    = optional(map(string))
     allowed_external_redirect_urls = optional(list(string))
     default_provider               = optional(string)
     enabled                        = optional(bool, false)

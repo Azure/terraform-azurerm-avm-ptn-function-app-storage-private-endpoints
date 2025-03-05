@@ -4,28 +4,6 @@
 This deploys the pattern module in its simplest form.
 
 ```hcl
-terraform {
-  required_version = ">= 1.7.0"
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = ">= 3.7.0, < 4.0.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.5.0, < 4.0.0"
-    }
-  }
-}
-
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
 module "regions" {
   source  = "Azure/regions/azurerm"
   version = ">= 0.3.0"
@@ -100,7 +78,7 @@ module "public_ip" {
 # Should you want the function app to be secured by private endpoints, you can use the following code:
 module "function_app_private_dns_zone" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "0.1.2"
+  version = "0.3.2"
 
   enable_telemetry = var.enable_telemetry
 
@@ -126,13 +104,13 @@ module "test" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  os_type = "Linux"
+  os_type = "Windows"
 
   # Creates a new app service plan
   create_service_plan = true
   service_plan = {
-    name = module.naming.app_service_plan.name_unique
-    # zone_balancing_enabled = false
+    name                   = module.naming.app_service_plan.name_unique
+    zone_balancing_enabled = false
   }
 
 
@@ -239,7 +217,7 @@ module "test" {
     always_on  = true
     application_stack = {
       stack_1 = {
-        node_version = "20"
+        node_version = "~20"
       }
     }
   }
@@ -271,32 +249,49 @@ resource "azurerm_network_security_rule" "example" {
   source_port_range           = "*"
 }
 
+module "vm_sku" {
+  source = "Azure/avm-utl-sku-finder/azapi"
+
+  version = "0.3.0"
+
+  location      = azurerm_resource_group.example.location
+  cache_results = true
+
+  vm_filters = {
+    min_vcpus                      = 2
+    max_vcpus                      = 2
+    encryption_at_host_supported   = true
+    accelerated_networking_enabled = true
+    premium_io_supported           = true
+    location_zone                  = random_integer.zone_index.result
+  }
+
+  depends_on = [random_integer.zone_index]
+}
+
 # Create the virtual machine
 module "avm_res_compute_virtualmachine" {
-  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.16.0"
+  source = "Azure/avm-res-compute-virtualmachine/azurerm"
 
-  enable_telemetry = false
+  version = "0.18.0"
 
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  name                = "${module.naming.virtual_machine.name_unique}-tf"
-  sku_size            = module.avm_res_compute_virtualmachine_sku_selector.sku
-  os_type             = "Windows"
-
-  zone = random_integer.zone_index.result
-
+  enable_telemetry                   = false
+  resource_group_name                = azurerm_resource_group.example.name
+  location                           = azurerm_resource_group.example.location
+  name                               = "${module.naming.virtual_machine.name_unique}-tf"
+  sku_size                           = module.vm_sku.sku
+  os_type                            = "Windows"
+  encryption_at_host_enabled         = false
+  zone                               = random_integer.zone_index.result
   generate_admin_password_or_ssh_key = false
   admin_username                     = "TestAdmin"
   admin_password                     = "P@ssw0rd1234!"
-
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
     sku       = "2019-Datacenter"
     version   = "latest"
   }
-
   network_interfaces = {
     network_interface_1 = {
       name = "nic-${module.naming.network_interface.name_unique}-tf"
@@ -316,21 +311,12 @@ module "avm_res_compute_virtualmachine" {
       }
     }
   }
-
   provision_vm_agent         = false
   allow_extension_operations = false
-
   tags = {
 
   }
 
-}
-
-module "avm_res_compute_virtualmachine_sku_selector" {
-  source  = "Azure/avm-res-compute-virtualmachine/azurerm//modules/sku_selector"
-  version = "0.16.0"
-
-  deployment_region = azurerm_resource_group.example.location
 }
 ```
 
@@ -339,19 +325,11 @@ module "avm_res_compute_virtualmachine_sku_selector" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.7.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.10)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.7.0, < 4.0.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
-
-## Providers
-
-The following providers are used by this module:
-
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.7.0, < 4.0.0)
-
-- <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0, < 4.0.0)
 
 ## Resources
 
@@ -435,19 +413,13 @@ The following Modules are called:
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.16.0
-
-### <a name="module_avm_res_compute_virtualmachine_sku_selector"></a> [avm\_res\_compute\_virtualmachine\_sku\_selector](#module\_avm\_res\_compute\_virtualmachine\_sku\_selector)
-
-Source: Azure/avm-res-compute-virtualmachine/azurerm//modules/sku_selector
-
-Version: 0.16.0
+Version: 0.18.0
 
 ### <a name="module_function_app_private_dns_zone"></a> [function\_app\_private\_dns\_zone](#module\_function\_app\_private\_dns\_zone)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.1.2
+Version: 0.3.2
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
@@ -472,6 +444,12 @@ Version: >= 0.3.0
 Source: ../../
 
 Version:
+
+### <a name="module_vm_sku"></a> [vm\_sku](#module\_vm\_sku)
+
+Source: Azure/avm-utl-sku-finder/azapi
+
+Version: 0.3.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

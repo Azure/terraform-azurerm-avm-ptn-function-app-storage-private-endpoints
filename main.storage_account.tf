@@ -1,11 +1,11 @@
 module "storage_account" {
+  source = "Azure/avm-res-storage-storageaccount/azurerm"
+
+  version = "0.5.0"
+
   count = var.create_secure_storage_account ? 1 : 0
 
-  source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.2.4"
-
-  enable_telemetry = var.enable_telemetry
-
+  enable_telemetry              = var.enable_telemetry
   account_replication_type      = var.storage_account.account_replication_type
   access_tier                   = var.storage_account.access_tier
   account_kind                  = var.storage_account.account_kind

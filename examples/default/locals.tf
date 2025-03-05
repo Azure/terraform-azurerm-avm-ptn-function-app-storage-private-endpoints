@@ -1,6 +1,6 @@
 locals {
   azure_regions = [
-    "eastus",
-    "eastasia"
+    "westus2",
+    "canadacentral"
   ]
 }

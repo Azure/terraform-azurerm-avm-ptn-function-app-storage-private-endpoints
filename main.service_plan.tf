@@ -1,11 +1,11 @@
 module "service_plan" {
+  source = "Azure/avm-res-web-serverfarm/azurerm"
+
+  version = "0.4.0"
+
   count = var.create_service_plan ? 1 : 0
 
-  source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "0.2.0"
-
-  enable_telemetry = var.enable_telemetry
-
+  enable_telemetry             = var.enable_telemetry
   location                     = coalesce(var.service_plan.location, var.location)
   name                         = coalesce(var.service_plan.name, "${var.name}-asp")
   os_type                      = var.os_type

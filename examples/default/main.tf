@@ -1,25 +1,3 @@
-terraform {
-  required_version = ">= 1.7.0"
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = ">= 3.7.0, < 4.0.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.5.0, < 4.0.0"
-    }
-  }
-}
-
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
 module "regions" {
   source  = "Azure/regions/azurerm"
   version = ">= 0.3.0"
@@ -94,7 +72,7 @@ module "public_ip" {
 # Should you want the function app to be secured by private endpoints, you can use the following code:
 module "function_app_private_dns_zone" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "0.1.2"
+  version = "0.3.2"
 
   enable_telemetry = var.enable_telemetry
 
@@ -120,13 +98,13 @@ module "test" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  os_type = "Linux"
+  os_type = "Windows"
 
   # Creates a new app service plan
   create_service_plan = true
   service_plan = {
-    name = module.naming.app_service_plan.name_unique
-    # zone_balancing_enabled = false
+    name                   = module.naming.app_service_plan.name_unique
+    zone_balancing_enabled = false
   }
 
 
@@ -233,7 +211,7 @@ module "test" {
     always_on  = true
     application_stack = {
       stack_1 = {
-        node_version = "20"
+        node_version = "~20"
       }
     }
   }
@@ -265,32 +243,49 @@ resource "azurerm_network_security_rule" "example" {
   source_port_range           = "*"
 }
 
+module "vm_sku" {
+  source = "Azure/avm-utl-sku-finder/azapi"
+
+  version = "0.3.0"
+
+  location      = azurerm_resource_group.example.location
+  cache_results = true
+
+  vm_filters = {
+    min_vcpus                      = 2
+    max_vcpus                      = 2
+    encryption_at_host_supported   = true
+    accelerated_networking_enabled = true
+    premium_io_supported           = true
+    location_zone                  = random_integer.zone_index.result
+  }
+
+  depends_on = [random_integer.zone_index]
+}
+
 # Create the virtual machine
 module "avm_res_compute_virtualmachine" {
-  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.16.0"
+  source = "Azure/avm-res-compute-virtualmachine/azurerm"
 
-  enable_telemetry = false
+  version = "0.18.0"
 
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  name                = "${module.naming.virtual_machine.name_unique}-tf"
-  sku_size            = module.avm_res_compute_virtualmachine_sku_selector.sku
-  os_type             = "Windows"
-
-  zone = random_integer.zone_index.result
-
+  enable_telemetry                   = false
+  resource_group_name                = azurerm_resource_group.example.name
+  location                           = azurerm_resource_group.example.location
+  name                               = "${module.naming.virtual_machine.name_unique}-tf"
+  sku_size                           = module.vm_sku.sku
+  os_type                            = "Windows"
+  encryption_at_host_enabled         = false
+  zone                               = random_integer.zone_index.result
   generate_admin_password_or_ssh_key = false
   admin_username                     = "TestAdmin"
   admin_password                     = "P@ssw0rd1234!"
-
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
     sku       = "2019-Datacenter"
     version   = "latest"
   }
-
   network_interfaces = {
     network_interface_1 = {
       name = "nic-${module.naming.network_interface.name_unique}-tf"
@@ -310,19 +305,10 @@ module "avm_res_compute_virtualmachine" {
       }
     }
   }
-
   provision_vm_agent         = false
   allow_extension_operations = false
-
   tags = {
 
   }
 
-}
-
-module "avm_res_compute_virtualmachine_sku_selector" {
-  source  = "Azure/avm-res-compute-virtualmachine/azurerm//modules/sku_selector"
-  version = "0.16.0"
-
-  deployment_region = azurerm_resource_group.example.location
 }

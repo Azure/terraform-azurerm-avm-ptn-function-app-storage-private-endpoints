@@ -1,9 +1,9 @@
 module "function_app" {
-  source  = "Azure/avm-res-web-site/azurerm"
-  version = "0.11.0"
+  source = "Azure/avm-res-web-site/azurerm"
 
-  enable_telemetry = var.enable_telemetry
+  version = "0.15.0"
 
+  enable_telemetry                               = var.enable_telemetry
   name                                           = var.name
   resource_group_name                            = var.resource_group_name
   location                                       = var.location
@@ -63,13 +63,11 @@ module "function_app" {
     {
       # these are used by managed identity, but MI can only be used on dedicated plans, not on elastic premium
       # ref: # https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings     
-      AzureWebJobsStorage__blobServiceUri  = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.blob.core.windows.net" : "https://${var.storage_account_name}.blob.core.windows.net"
-      AzureWebJobsStorage__queueServiceUri = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.queue.core.windows.net" : "https://${var.storage_account_name}.queue.core.windows.net"
-      AzureWebJobsStorage__tableServiceUri = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.table.core.windows.net" : "https://${var.storage_account_name}.table.core.windows.net"
-
+      AzureWebJobsStorage__blobServiceUri      = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.blob.core.windows.net" : "https://${var.storage_account_name}.blob.core.windows.net"
+      AzureWebJobsStorage__queueServiceUri     = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.queue.core.windows.net" : "https://${var.storage_account_name}.queue.core.windows.net"
+      AzureWebJobsStorage__tableServiceUri     = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.table.core.windows.net" : "https://${var.storage_account_name}.table.core.windows.net"
       WEBSITE_CONTENTAZUREFILECONNECTIONSTRING = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : var.storage_account_primary_connection_string
       WEBSITE_CONTENTSHARE                     = var.create_secure_storage_account ? coalesce(var.storage_contentshare_name, var.storage_account.name) : var.storage_contentshare_name
-
       # Although `WEBSITE_CONTENTOVERVNET` has been superseded by `vnetContentShareEnabled` site setting, there is currently no way to configure this setting in greenfield scenario.
       # Therefore, we are setting both settings to ensure compatibility with existing configurations.
       WEBSITE_CONTENTOVERVNET = var.content_share_force_disabled != true ? 1 : 0
@@ -85,11 +83,11 @@ resource "azapi_update_resource" "this" {
   count = var.content_share_force_disabled != true ? 1 : 0
 
   type = "Microsoft.Web/sites@2022-03-01"
-  body = jsonencode({
+  body = {
     properties = {
       vnetContentShareEnabled = true
     }
-  })
+  }
   resource_id = module.function_app.resource_id
 }
 
