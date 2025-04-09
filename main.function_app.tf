@@ -1,7 +1,7 @@
 module "function_app" {
   source = "Azure/avm-res-web-site/azurerm"
 
-  version = "0.15.0"
+  version = "0.16.1"
 
   enable_telemetry                               = var.enable_telemetry
   name                                           = var.name
@@ -77,7 +77,7 @@ module "function_app" {
 }
 
 # Toggle on `vnetContentShareEnabled` site property.
-# This property cannot be set through Terraform currently, so we are using the `azapi_update_resource` resource to set it after deployment. 
+# This property cannot be set through `azurerm` currently, so we are using the `azapi_update_resource` resource to set it after deployment. 
 # `WEBSITE_CONTENTOVERVNET` app setting is still needed for greenfield deployments.
 resource "azapi_update_resource" "this" {
   count = var.content_share_force_disabled != true ? 1 : 0

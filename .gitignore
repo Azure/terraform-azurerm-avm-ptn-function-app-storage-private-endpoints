@@ -48,3 +48,7 @@ avm.tflint.merged.hcl
 avm.tflint_example.merged.hcl
 avm.tflint_module.hcl
 avm.tflint_module.merged.hcl
+
+
+# Files for local e2e tests
+sensitive.variables.tf

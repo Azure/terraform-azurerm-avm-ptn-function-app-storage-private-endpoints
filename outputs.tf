@@ -1,3 +1,10 @@
+output "deprecated_variables" {
+  description = "The list of deprecated variables."
+  value = {
+    new_service_plan = var.new_service_plan
+  }
+}
+
 output "function_app_private_dns_zone" {
   description = "The resource output for the private dns zone of the function app"
   value       = length(var.private_dns_zones) > 0 && var.zone_key_for_link != null ? module.private_dns_zone[var.zone_key_for_link].resource : null

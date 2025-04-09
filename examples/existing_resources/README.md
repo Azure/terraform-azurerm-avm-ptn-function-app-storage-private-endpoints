@@ -122,18 +122,24 @@ module "avm_res_storage_storageaccount" {
   }
   shares = {
     function_app_share = {
-      name  = module.naming.storage_account.name_unique
+      name  = "${module.avm_res_storage_storageaccount.name}-share1"
       quota = 1 # in GB
     }
   }
 }
 
-resource "azurerm_service_plan" "example" {
-  location            = azurerm_resource_group.example.location
-  name                = module.naming.app_service_plan.name_unique
-  os_type             = "Linux"
-  resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "S1"
+module "avm_res_web_serverfarm" {
+  source  = "Azure/avm-res-web-serverfarm/azurerm"
+  version = "0.4.0"
+
+  enable_telemetry = var.enable_telemetry
+
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
+  name                   = module.naming.app_service_plan.name_unique
+  sku_name               = "P1v2"
+  os_type                = "Windows"
+  zone_balancing_enabled = true
 }
 
 module "public_ip" {
@@ -156,8 +162,8 @@ module "test" {
   location            = azurerm_resource_group.example.location
 
   # Uses an existing app service plan
-  os_type                  = azurerm_service_plan.example.os_type
-  service_plan_resource_id = azurerm_service_plan.example.id
+  os_type                  = module.avm_res_web_serverfarm.resource.os_type
+  service_plan_resource_id = module.avm_res_web_serverfarm.resource_id
 
   create_secure_storage_account = false
   create_service_plan           = false
@@ -166,8 +172,7 @@ module "test" {
     ftps_state = "FtpsOnly"
     application_stack = {
       stack_1 = {
-        node_version = "20"
-        # dotnet_version = "8.0"
+        node_version = "~20"
       }
     }
   }
@@ -191,6 +196,7 @@ module "test" {
   storage_account_name                      = module.avm_res_storage_storageaccount.name
   storage_account_primary_connection_string = module.avm_res_storage_storageaccount.resource.primary_connection_string
   storage_account_access_key                = module.avm_res_storage_storageaccount.resource.primary_access_key
+  storage_contentshare_name                 = "${module.avm_res_storage_storageaccount.name}-share1"
 
   private_endpoint_subnet_resource_id = azurerm_subnet.example.id
   virtual_network_subnet_id           = azurerm_subnet.app_service.id
@@ -212,7 +218,7 @@ module "test" {
     table = {
       domain_name         = "table.core.windows.net"
       resource_group_name = azurerm_resource_group.example.name
-    },
+    }
     # function_app = {
     #   domain_name         = "privatelink.azurewebsites.net"
     #   resource_group_name = azurerm_resource_group.example.name
@@ -246,7 +252,6 @@ The following resources are used by this module:
 
 - [azurerm_log_analytics_workspace.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_resource_group.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [azurerm_service_plan.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) (resource)
 - [azurerm_subnet.app_service](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
@@ -313,6 +318,12 @@ The following Modules are called:
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
 Version: 0.5.0
+
+### <a name="module_avm_res_web_serverfarm"></a> [avm\_res\_web\_serverfarm](#module\_avm\_res\_web\_serverfarm)
+
+Source: Azure/avm-res-web-serverfarm/azurerm
+
+Version: 0.4.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 

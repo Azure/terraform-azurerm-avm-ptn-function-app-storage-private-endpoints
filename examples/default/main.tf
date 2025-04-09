@@ -104,9 +104,9 @@ module "test" {
   create_service_plan = true
   service_plan = {
     name                   = module.naming.app_service_plan.name_unique
-    zone_balancing_enabled = false
+    sku_name               = "P1v2"
+    zone_balancing_enabled = true
   }
-
 
   # Uses the avm-res-storage-storageaccount module to create a new storage account 
   create_secure_storage_account = true
@@ -182,7 +182,6 @@ module "test" {
         }
       }
     }
-
   }
 
   private_dns_zone_resource_group_name = azurerm_resource_group.example.name
@@ -310,5 +309,4 @@ module "avm_res_compute_virtualmachine" {
   tags = {
 
   }
-
 }
