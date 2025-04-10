@@ -431,10 +431,10 @@ variable "auto_heal_setting" {
     }))
     trigger = optional(object({
       private_memory_kb = optional(number)
-      requests = optional(object({
+      requests = optional(map(object({
         count    = number
         interval = string
-      }))
+      })), {})
       slow_request = optional(map(object({
         count      = number
         interval   = string
@@ -461,36 +461,7 @@ variable "auto_heal_setting" {
 
   }
   description = <<DESCRIPTION
-
-  Configures the Auto Heal settings for the Function App. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-  - `action` - (Optional) The action to take when the trigger is activated.
-    - `action_type` - (Required) The type of action to take. Possible values include: `CustomAction`, `Recycle`, `LogEvent`, `HttpRequst`.
-    - `custom_action` - (Optional) The custom action to take when the trigger is activated.
-      - `executable` - (Required) The executable to run when the trigger is activated.
-      - `parameters` - (Optional) The parameters to pass to the executable.
-    - `minimum_process_execution_time` - (Optional) The minimum process execution time before the action is taken. Defaults to `00:00:00`.
-  - `trigger` - (Optional) The trigger to activate the action.
-    - `private_memory_kb` - (Optional) The private memory in kilobytes to trigger the action.
-    - `requests` - (Optional) The requests trigger to activate the action.
-      - `count` - (Required) The number of requests to trigger the action.
-      - `interval` - (Required) The interval to trigger the action.
-    - `slow_request` - (Optional) The slow request trigger to activate the action.
-      - `count` - (Required) The number of slow requests to trigger the action.
-      - `interval` - (Required) The interval to trigger the action.
-      - `take_taken` - (Required) The time taken to trigger the action.
-      - `path` - (Optional) The path to trigger the action. 
-      > NOTE: The `path` property in the `slow_request` block is deprecated and will be removed in 4.0 of provider. Please use `slow_request_with_path` to set a slow request trigger with `path` specified.
-    - `status_code` - (Optional) The status code trigger to activate the action.
-      - `count` - (Required) The number of status codes to trigger the action.
-      - `interval` - (Required) The interval to trigger the action.
-      - `status_code_range` - (Required) The status code range to trigger the action.
-      - `path` - (Optional) The path to trigger the action.
-      - `sub_status` - (Optional) The sub status to trigger the action.
-      - `win32_status_code` - (Optional) The Win32 status code to trigger the action.
-
-  ```terraform
-
+  To be removed, as Function App does not support auto heal.
   DESCRIPTION
   nullable    = false
 }
@@ -1377,10 +1348,10 @@ variable "deployment_slots" {
       }))
       trigger = optional(object({
         private_memory_kb = optional(number)
-        requests = optional(object({
+        requests = optional(map(object({
           count    = number
           interval = string
-        }))
+        })), {})
         slow_request = optional(map(object({
           count      = number
           interval   = string
@@ -1503,14 +1474,14 @@ variable "deployment_slots" {
     })), {})
 
     site_config = optional(object({
-      always_on                                     = optional(bool, false) # when running in a Consumption or Premium Plan, `always_on` feature should be turned off. Please turn it off before upgrading the service plan from standard to premium.
-      api_definition_url                            = optional(string)      # (Optional) The URL of the OpenAPI (Swagger) definition that provides schema for the function's HTTP endpoints.
-      api_management_api_id                         = optional(string)      # (Optional) The API Management API identifier.
-      app_command_line                              = optional(string)      # (Optional) The command line to launch the application.
-      auto_heal_enabled                             = optional(bool)        # (Optional) Should auto-heal be enabled for the Function App?
-      app_scale_limit                               = optional(number)      # (Optional) The maximum number of workers that the Function App can scale out to.
-      application_insights_connection_string        = optional(string)      # (Optional) The connection string of the Application Insights resource to send telemetry to.
-      application_insights_key                      = optional(string)      # (Optional) The instrumentation key of the Application Insights resource to send telemetry to.
+      always_on             = optional(bool, false) # when running in a Consumption or Premium Plan, `always_on` feature should be turned off. Please turn it off before upgrading the service plan from standard to premium.
+      api_definition_url    = optional(string)      # (Optional) The URL of the OpenAPI (Swagger) definition that provides schema for the function's HTTP endpoints.
+      api_management_api_id = optional(string)      # (Optional) The API Management API identifier.
+      app_command_line      = optional(string)      # (Optional) The command line to launch the application.
+      # auto_heal_enabled                             = optional(bool)        # (Optional) Should auto-heal be enabled for the Function App?
+      app_scale_limit                               = optional(number) # (Optional) The maximum number of workers that the Function App can scale out to.
+      application_insights_connection_string        = optional(string) # (Optional) The connection string of the Application Insights resource to send telemetry to.
+      application_insights_key                      = optional(string) # (Optional) The instrumentation key of the Application Insights resource to send telemetry to.
       container_registry_managed_identity_client_id = optional(string)
       container_registry_use_managed_identity       = optional(bool)
       default_documents                             = optional(list(string))            #(Optional) Specifies a list of Default Documents for the Windows Function App.
@@ -1634,7 +1605,7 @@ variable "deployment_slots" {
   description = <<DESCRIPTION
 
   ```
-
+  `auto_heal_setting` - To be removed, as Function App does not support auto heal.
   ```
   DESCRIPTION
 }
