@@ -503,13 +503,13 @@ map(object({
       slow_request = optional(map(object({
         count      = number
         interval   = string
-        take_taken = string
+        time_taken = string
         path       = optional(string)
       })), {})
       slow_request_with_path = optional(map(object({
         count      = number
         interval   = string
-        take_taken = string
+        time_taken = string
         path       = optional(string)
       })), {})
       status_code = optional(map(object({
@@ -950,13 +950,13 @@ map(object({
         slow_request = optional(map(object({
           count      = number
           interval   = string
-          take_taken = string
+          time_taken = string
           path       = optional(string)
         })), {})
         slow_request_with_path = optional(map(object({
           count      = number
           interval   = string
-          take_taken = string
+          time_taken = string
           path       = optional(string)
         })), {})
         status_code = optional(map(object({
