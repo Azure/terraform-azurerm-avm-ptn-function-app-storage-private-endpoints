@@ -1,33 +1,11 @@
 <!-- BEGIN_TF_DOCS -->
 # Referencing existing resources
 
+## Example is still a work-in-progress
+
 This deploys an example showing the pattern referencing existing resources or resources created outside of the `avm-res-web-site` module
 
 ```hcl
-terraform {
-  required_version = ">= 1.6.1"
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = ">= 3.7.0, < 4.0.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.5.0, < 4.0.0"
-    }
-  }
-}
-
-# tflint-ignore: terraform_module_provider_declaration, terraform_output_separate, terraform_variable_separate
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
-
 ## Section to provide a random Azure region for the resource group
 # This allows us to randomize the region for the resource group.
 module "regions" {
@@ -99,7 +77,7 @@ resource "azurerm_subnet" "app_service" {
 
 module "avm_res_storage_storageaccount" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.2.4"
+  version = "0.5.0"
 
   enable_telemetry              = var.enable_telemetry
   name                          = module.naming.storage_account.name_unique
@@ -142,20 +120,26 @@ module "avm_res_storage_storageaccount" {
       principal_id               = module.test.resource.identity[0].principal_id
     }
   }
-  # shares = {
-  #   function_app_share = {
-  #     name  = module.naming.storage_account.name_unique
-  #     quota = 1 # in GB
-  #   }
-  # }
+  shares = {
+    function_app_share = {
+      name  = "${module.avm_res_storage_storageaccount.name}-share1"
+      quota = 1 # in GB
+    }
+  }
 }
 
-resource "azurerm_service_plan" "example" {
-  location            = azurerm_resource_group.example.location
-  name                = module.naming.app_service_plan.name_unique
-  os_type             = "Windows"
-  resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "B1"
+module "avm_res_web_serverfarm" {
+  source  = "Azure/avm-res-web-serverfarm/azurerm"
+  version = "0.4.0"
+
+  enable_telemetry = var.enable_telemetry
+
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
+  name                   = module.naming.app_service_plan.name_unique
+  sku_name               = "P1v2"
+  os_type                = "Windows"
+  zone_balancing_enabled = true
 }
 
 module "public_ip" {
@@ -173,13 +157,29 @@ module "test" {
 
   enable_telemetry = var.enable_telemetry
 
-  name                = "${module.naming.function_app.name_unique}-secured" # TODO update with module.naming.<RESOURCE_TYPE>.name_unique
+  name                = "${module.naming.function_app.name_unique}-secured"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
   # Uses an existing app service plan
-  os_type                  = azurerm_service_plan.example.os_type
-  service_plan_resource_id = azurerm_service_plan.example.id
+  os_type                  = module.avm_res_web_serverfarm.resource.os_type
+  service_plan_resource_id = module.avm_res_web_serverfarm.resource_id
+
+  create_secure_storage_account = false
+  create_service_plan           = false
+
+  site_config = {
+    ftps_state = "FtpsOnly"
+    application_stack = {
+      stack_1 = {
+        node_version = "~20"
+      }
+    }
+  }
+
+  # app_settings = {
+  #   "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = module.avm_res_storage_storageaccount.resource.primary_connection_string
+  # }
 
   application_insights = {
     name                  = module.naming.application_insights.name_unique
@@ -196,6 +196,7 @@ module "test" {
   storage_account_name                      = module.avm_res_storage_storageaccount.name
   storage_account_primary_connection_string = module.avm_res_storage_storageaccount.resource.primary_connection_string
   storage_account_access_key                = module.avm_res_storage_storageaccount.resource.primary_access_key
+  storage_contentshare_name                 = "${module.avm_res_storage_storageaccount.name}-share1"
 
   private_endpoint_subnet_resource_id = azurerm_subnet.example.id
   virtual_network_subnet_id           = azurerm_subnet.app_service.id
@@ -217,20 +218,20 @@ module "test" {
     table = {
       domain_name         = "table.core.windows.net"
       resource_group_name = azurerm_resource_group.example.name
-    },
-    function_app = {
-      domain_name         = "privatelink.azurewebsites.net"
-      resource_group_name = azurerm_resource_group.example.name
-      virtual_network_links = {
-        example = {
-          vnetlinkname = "${azurerm_virtual_network.example.name}-link"
-          vnetid       = azurerm_virtual_network.example.id
-        }
-      }
     }
+    # function_app = {
+    #   domain_name         = "privatelink.azurewebsites.net"
+    #   resource_group_name = azurerm_resource_group.example.name
+    #   virtual_network_links = {
+    #     example = {
+    #       vnetlinkname = "${azurerm_virtual_network.example.name}-link"
+    #       vnetid       = azurerm_virtual_network.example.id
+    #     }
+    #   }
+    # }
   }
 
-  zone_key_for_link = "function_app"
+  # zone_key_for_link = "function_app"
 }
 ```
 
@@ -239,19 +240,11 @@ module "test" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.6.1)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.10)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.7.0, < 4.0.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
-
-## Providers
-
-The following providers are used by this module:
-
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.7.0, < 4.0.0)
-
-- <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0, < 4.0.0)
 
 ## Resources
 
@@ -259,7 +252,6 @@ The following resources are used by this module:
 
 - [azurerm_log_analytics_workspace.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_resource_group.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [azurerm_service_plan.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) (resource)
 - [azurerm_subnet.app_service](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_subnet.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
@@ -325,7 +317,13 @@ The following Modules are called:
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.2.4
+Version: 0.5.0
+
+### <a name="module_avm_res_web_serverfarm"></a> [avm\_res\_web\_serverfarm](#module\_avm\_res\_web\_serverfarm)
+
+Source: Azure/avm-res-web-serverfarm/azurerm
+
+Version: 0.4.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 

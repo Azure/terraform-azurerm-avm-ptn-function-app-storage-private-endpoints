@@ -98,7 +98,7 @@ variable "application_insights" {
 
 variable "auth_settings" {
   type = map(object({
-    additional_login_parameters    = optional(list(string))
+    additional_login_parameters    = optional(map(string))
     allowed_external_redirect_urls = optional(list(string))
     default_provider               = optional(string)
     enabled                        = optional(bool, false)
@@ -431,20 +431,20 @@ variable "auto_heal_setting" {
     }))
     trigger = optional(object({
       private_memory_kb = optional(number)
-      requests = optional(object({
+      requests = optional(map(object({
         count    = number
         interval = string
-      }))
+      })), {})
       slow_request = optional(map(object({
         count      = number
         interval   = string
-        take_taken = string
+        time_taken = string
         path       = optional(string)
       })), {})
       slow_request_with_path = optional(map(object({
         count      = number
         interval   = string
-        take_taken = string
+        time_taken = string
         path       = optional(string)
       })), {})
       status_code = optional(map(object({
@@ -461,36 +461,7 @@ variable "auto_heal_setting" {
 
   }
   description = <<DESCRIPTION
-
-  Configures the Auto Heal settings for the Function App. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-  - `action` - (Optional) The action to take when the trigger is activated.
-    - `action_type` - (Required) The type of action to take. Possible values include: `CustomAction`, `Recycle`, `LogEvent`, `HttpRequst`.
-    - `custom_action` - (Optional) The custom action to take when the trigger is activated.
-      - `executable` - (Required) The executable to run when the trigger is activated.
-      - `parameters` - (Optional) The parameters to pass to the executable.
-    - `minimum_process_execution_time` - (Optional) The minimum process execution time before the action is taken. Defaults to `00:00:00`.
-  - `trigger` - (Optional) The trigger to activate the action.
-    - `private_memory_kb` - (Optional) The private memory in kilobytes to trigger the action.
-    - `requests` - (Optional) The requests trigger to activate the action.
-      - `count` - (Required) The number of requests to trigger the action.
-      - `interval` - (Required) The interval to trigger the action.
-    - `slow_request` - (Optional) The slow request trigger to activate the action.
-      - `count` - (Required) The number of slow requests to trigger the action.
-      - `interval` - (Required) The interval to trigger the action.
-      - `take_taken` - (Required) The time taken to trigger the action.
-      - `path` - (Optional) The path to trigger the action. 
-      > NOTE: The `path` property in the `slow_request` block is deprecated and will be removed in 4.0 of provider. Please use `slow_request_with_path` to set a slow request trigger with `path` specified.
-    - `status_code` - (Optional) The status code trigger to activate the action.
-      - `count` - (Required) The number of status codes to trigger the action.
-      - `interval` - (Required) The interval to trigger the action.
-      - `status_code_range` - (Required) The status code range to trigger the action.
-      - `path` - (Optional) The path to trigger the action.
-      - `sub_status` - (Optional) The sub status to trigger the action.
-      - `win32_status_code` - (Optional) The Win32 status code to trigger the action.
-
-  ```terraform
-
+  To be removed, as Function App does not support auto heal.
   DESCRIPTION
   nullable    = false
 }
@@ -602,12 +573,6 @@ variable "content_share_force_disabled" {
   type        = bool
   default     = false
   description = "Should content share be force disabled for the Function App?"
-}
-
-variable "create_service_plan" {
-  type        = bool
-  default     = true
-  description = "Should the module create a new App Service Plan for the Function App? Defaults to `true`."
 }
 
 variable "custom_domains" {
@@ -783,6 +748,12 @@ variable "storage_account_name" {
   description = "The name of the existing Storage Account to deploy the Function App in."
 }
 
+variable "storage_contentshare_name" {
+  type        = string
+  default     = null
+  description = "The name of the existing Storage Account Content Share for the Function App to use."
+}
+
 variable "storage_account_primary_connection_string" {
   type        = string
   default     = null
@@ -825,37 +796,6 @@ variable "managed_identities" {
   default     = {}
   description = "Managed identities to be created for the resource."
   nullable    = false
-}
-
-variable "new_service_plan" {
-  type = object({
-    name                                = optional(string)
-    resource_group_name                 = optional(string)
-    location                            = optional(string)
-    sku_name                            = optional(string, "P1v2")
-    app_service_environment_resource_id = optional(string)
-    maximum_elastic_worker_count        = optional(number)
-    worker_count                        = optional(number, 3)
-    per_site_scaling_enabled            = optional(bool, false)
-    zone_balancing_enabled              = optional(bool, true)
-  })
-  default = {
-
-  }
-  description = <<DESCRIPTION
-  A map of objects that represent a new App Service Plan to create for the Function App.
-
-  - `name` - (Optional) The name of the App Service Plan.
-  - `resource_group_name` - (Optional) The name of the resource group to deploy the App Service Plan in.
-  - `location` - (Optional) The Azure region where the App Service Plan will be deployed. Defaults to the location of the resource group.
-  - `sku_name` - (Optional) The SKU name of the App Service Plan. Defaults to `B1`.
-  - `app_service_environment_resource_id` - (Optional) The resource ID of the App Service Environment to deploy the App Service Plan in.
-  - `maximum_elastic_worker_count` - (Optional) The maximum number of workers that can be allocated to this App Service Plan.
-  - `worker_count` - (Optional) The number of workers to allocate to this App Service Plan.
-  - `per_site_scaling_enabled` - (Optional) Should per site scaling be enabled for the App Service Plan? Defaults to `false`.
-  - `zone_balancing_enabled` - (Optional) Should zone balancing be enabled for the App Service Plan? Changing this forces a new resource to be created.
-  > **NOTE:** If this setting is set to `true` and the `worker_count` value is specified, it should be set to a multiple of the number of availability zones in the region. Please see the Azure documentation for the number of Availability Zones in your region.
-  DESCRIPTION
 }
 
 variable "private_dns_zone_resource_group_name" {
@@ -1014,7 +954,7 @@ variable "site_config" {
     scm_minimum_tls_version                       = optional(string, "1.2")           #(Optional) Configures the minimum version of TLS required for SSL requests to Kudu. Possible values include: 1.0, 1.1, and 1.2. Defaults to 1.2.
     scm_use_main_ip_restriction                   = optional(bool, false)             #(Optional) Should the SCM use the same IP restrictions as the main site. Defaults to false.
     use_32_bit_worker                             = optional(bool, false)             #(Optional) Should the 32-bit worker process be used. Defaults to false.
-    vnet_route_all_enabled                        = optional(bool, false)             #(Optional) Should all traffic be routed to the virtual network. Defaults to false.
+    vnet_route_all_enabled                        = optional(bool, true)              #(Optional) Should all traffic be routed to the virtual network. Defaults to false.
     websockets_enabled                            = optional(bool, false)             #(Optional) Should Websockets be enabled. Defaults to false.
     worker_count                                  = optional(number)                  #(Optional) The number of workers for this Windows Function App. Only affects apps on an Elastic Premium plan.
     app_service_logs = optional(map(object({
@@ -1064,7 +1004,7 @@ variable "site_config" {
       virtual_network_subnet_id = optional(string)
       headers = optional(map(object({
         x_azure_fdid      = optional(list(string))
-        x_fd_health_probe = optional(number)
+        x_fd_health_probe = optional(list(string), ["1"])
         x_forwarded_for   = optional(list(string))
         x_forwarded_host  = optional(list(string))
       })), {})
@@ -1078,7 +1018,7 @@ variable "site_config" {
       virtual_network_subnet_id = optional(string)
       headers = optional(map(object({
         x_azure_fdid      = optional(list(string))
-        x_fd_health_probe = optional(number)
+        x_fd_health_probe = optional(list(string), ["1"])
         x_forwarded_for   = optional(list(string))
         x_forwarded_host  = optional(list(string))
       })), {})
@@ -1408,20 +1348,20 @@ variable "deployment_slots" {
       }))
       trigger = optional(object({
         private_memory_kb = optional(number)
-        requests = optional(object({
+        requests = optional(map(object({
           count    = number
           interval = string
-        }))
+        })), {})
         slow_request = optional(map(object({
           count      = number
           interval   = string
-          take_taken = string
+          time_taken = string
           path       = optional(string)
         })), {})
         slow_request_with_path = optional(map(object({
           count      = number
           interval   = string
-          take_taken = string
+          time_taken = string
           path       = optional(string)
         })), {})
         status_code = optional(map(object({
@@ -1534,14 +1474,14 @@ variable "deployment_slots" {
     })), {})
 
     site_config = optional(object({
-      always_on                                     = optional(bool, false) # when running in a Consumption or Premium Plan, `always_on` feature should be turned off. Please turn it off before upgrading the service plan from standard to premium.
-      api_definition_url                            = optional(string)      # (Optional) The URL of the OpenAPI (Swagger) definition that provides schema for the function's HTTP endpoints.
-      api_management_api_id                         = optional(string)      # (Optional) The API Management API identifier.
-      app_command_line                              = optional(string)      # (Optional) The command line to launch the application.
-      auto_heal_enabled                             = optional(bool)        # (Optional) Should auto-heal be enabled for the Function App?
-      app_scale_limit                               = optional(number)      # (Optional) The maximum number of workers that the Function App can scale out to.
-      application_insights_connection_string        = optional(string)      # (Optional) The connection string of the Application Insights resource to send telemetry to.
-      application_insights_key                      = optional(string)      # (Optional) The instrumentation key of the Application Insights resource to send telemetry to.
+      always_on             = optional(bool, false) # when running in a Consumption or Premium Plan, `always_on` feature should be turned off. Please turn it off before upgrading the service plan from standard to premium.
+      api_definition_url    = optional(string)      # (Optional) The URL of the OpenAPI (Swagger) definition that provides schema for the function's HTTP endpoints.
+      api_management_api_id = optional(string)      # (Optional) The API Management API identifier.
+      app_command_line      = optional(string)      # (Optional) The command line to launch the application.
+      # auto_heal_enabled                             = optional(bool)        # (Optional) Should auto-heal be enabled for the Function App?
+      app_scale_limit                               = optional(number) # (Optional) The maximum number of workers that the Function App can scale out to.
+      application_insights_connection_string        = optional(string) # (Optional) The connection string of the Application Insights resource to send telemetry to.
+      application_insights_key                      = optional(string) # (Optional) The instrumentation key of the Application Insights resource to send telemetry to.
       container_registry_managed_identity_client_id = optional(string)
       container_registry_use_managed_identity       = optional(bool)
       default_documents                             = optional(list(string))            #(Optional) Specifies a list of Default Documents for the Windows Function App.
@@ -1613,7 +1553,7 @@ variable "deployment_slots" {
         virtual_network_subnet_id = optional(string)
         headers = optional(map(object({
           x_azure_fdid      = optional(list(string))
-          x_fd_health_probe = optional(number)
+          x_fd_health_probe = optional(list(string), ["1"])
           x_forwarded_for   = optional(list(string))
           x_forwarded_host  = optional(list(string))
         })), {})
@@ -1627,7 +1567,7 @@ variable "deployment_slots" {
         virtual_network_subnet_id = optional(string)
         headers = optional(map(object({
           x_azure_fdid      = optional(list(string))
-          x_fd_health_probe = optional(number)
+          x_fd_health_probe = optional(list(string), ["1"])
           x_forwarded_for   = optional(list(string))
           x_forwarded_host  = optional(list(string))
         })), {})
@@ -1665,7 +1605,7 @@ variable "deployment_slots" {
   description = <<DESCRIPTION
 
   ```
-
+  `auto_heal_setting` - To be removed, as Function App does not support auto heal.
   ```
   DESCRIPTION
 }

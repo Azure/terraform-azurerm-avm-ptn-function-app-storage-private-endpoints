@@ -8,28 +8,21 @@ This is the pattern module to deply function app with secured storage.
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.6.1)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.10)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.114.0)
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.0)
+
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0, >= 4.8.0, >= 4.21.1, < 5.0.0)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
-## Providers
-
-The following providers are used by this module:
-
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.114.0)
-
-- <a name="provider_modtm"></a> [modtm](#provider\_modtm) (~> 0.3)
-
-- <a name="provider_random"></a> [random](#provider\_random) (~> 3.5)
-
 ## Resources
 
 The following resources are used by this module:
 
+- [azapi_update_resource.this](https://registry.terraform.io/providers/azure/azapi/latest/docs/resources/update_resource) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azurerm_client_config.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
@@ -231,7 +224,7 @@ Type:
 
 ```hcl
 map(object({
-    additional_login_parameters    = optional(list(string))
+    additional_login_parameters    = optional(map(string))
     allowed_external_redirect_urls = optional(list(string))
     default_provider               = optional(string)
     enabled                        = optional(bool, false)
@@ -487,37 +480,7 @@ Default: `{}`
 
 ### <a name="input_auto_heal_setting"></a> [auto\_heal\_setting](#input\_auto\_heal\_setting)
 
-Description:   
-  Configures the Auto Heal settings for the Function App. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-  - `action` - (Optional) The action to take when the trigger is activated.
-    - `action_type` - (Required) The type of action to take. Possible values include: `CustomAction`, `Recycle`, `LogEvent`, `HttpRequst`.
-    - `custom_action` - (Optional) The custom action to take when the trigger is activated.
-      - `executable` - (Required) The executable to run when the trigger is activated.
-      - `parameters` - (Optional) The parameters to pass to the executable.
-    - `minimum_process_execution_time` - (Optional) The minimum process execution time before the action is taken. Defaults to `00:00:00`.
-  - `trigger` - (Optional) The trigger to activate the action.
-    - `private_memory_kb` - (Optional) The private memory in kilobytes to trigger the action.
-    - `requests` - (Optional) The requests trigger to activate the action.
-      - `count` - (Required) The number of requests to trigger the action.
-      - `interval` - (Required) The interval to trigger the action.
-    - `slow_request` - (Optional) The slow request trigger to activate the action.
-      - `count` - (Required) The number of slow requests to trigger the action.
-      - `interval` - (Required) The interval to trigger the action.
-      - `take_taken` - (Required) The time taken to trigger the action.
-      - `path` - (Optional) The path to trigger the action.
-      > NOTE: The `path` property in the `slow_request` block is deprecated and will be removed in 4.0 of provider. Please use `slow_request_with_path` to set a slow request trigger with `path` specified.
-    - `status_code` - (Optional) The status code trigger to activate the action.
-      - `count` - (Required) The number of status codes to trigger the action.
-      - `interval` - (Required) The interval to trigger the action.
-      - `status_code_range` - (Required) The status code range to trigger the action.
-      - `path` - (Optional) The path to trigger the action.
-      - `sub_status` - (Optional) The sub status to trigger the action.
-      - `win32_status_code` - (Optional) The Win32 status code to trigger the action.
-
-  ```terraform
-
-```
+Description:   To be removed, as Function App does not support auto heal.
 
 Type:
 
@@ -533,20 +496,20 @@ map(object({
     }))
     trigger = optional(object({
       private_memory_kb = optional(number)
-      requests = optional(object({
+      requests = optional(map(object({
         count    = number
         interval = string
-      }))
+      })), {})
       slow_request = optional(map(object({
         count      = number
         interval   = string
-        take_taken = string
+        time_taken = string
         path       = optional(string)
       })), {})
       slow_request_with_path = optional(map(object({
         count      = number
         interval   = string
-        take_taken = string
+        time_taken = string
         path       = optional(string)
       })), {})
       status_code = optional(map(object({
@@ -698,7 +661,7 @@ Default: `true`
 
 ### <a name="input_create_service_plan"></a> [create\_service\_plan](#input\_create\_service\_plan)
 
-Description: Should the module create a new App Service Plan for the Function App? Defaults to `true`.
+Description: Should a service plan be created for the Function App? Defaults to `true`.
 
 Type: `bool`
 
@@ -804,7 +767,7 @@ Default: `0`
 
 Description:
   ```
-
+  `auto_heal_setting` - To be removed, as Function App does not support auto heal.
 ```
 
 Type:
@@ -980,20 +943,20 @@ map(object({
       }))
       trigger = optional(object({
         private_memory_kb = optional(number)
-        requests = optional(object({
+        requests = optional(map(object({
           count    = number
           interval = string
-        }))
+        })), {})
         slow_request = optional(map(object({
           count      = number
           interval   = string
-          take_taken = string
+          time_taken = string
           path       = optional(string)
         })), {})
         slow_request_with_path = optional(map(object({
           count      = number
           interval   = string
-          take_taken = string
+          time_taken = string
           path       = optional(string)
         })), {})
         status_code = optional(map(object({
@@ -1106,14 +1069,14 @@ map(object({
     })), {})
 
     site_config = optional(object({
-      always_on                                     = optional(bool, false) # when running in a Consumption or Premium Plan, `always_on` feature should be turned off. Please turn it off before upgrading the service plan from standard to premium.
-      api_definition_url                            = optional(string)      # (Optional) The URL of the OpenAPI (Swagger) definition that provides schema for the function's HTTP endpoints.
-      api_management_api_id                         = optional(string)      # (Optional) The API Management API identifier.
-      app_command_line                              = optional(string)      # (Optional) The command line to launch the application.
-      auto_heal_enabled                             = optional(bool)        # (Optional) Should auto-heal be enabled for the Function App?
-      app_scale_limit                               = optional(number)      # (Optional) The maximum number of workers that the Function App can scale out to.
-      application_insights_connection_string        = optional(string)      # (Optional) The connection string of the Application Insights resource to send telemetry to.
-      application_insights_key                      = optional(string)      # (Optional) The instrumentation key of the Application Insights resource to send telemetry to.
+      always_on             = optional(bool, false) # when running in a Consumption or Premium Plan, `always_on` feature should be turned off. Please turn it off before upgrading the service plan from standard to premium.
+      api_definition_url    = optional(string)      # (Optional) The URL of the OpenAPI (Swagger) definition that provides schema for the function's HTTP endpoints.
+      api_management_api_id = optional(string)      # (Optional) The API Management API identifier.
+      app_command_line      = optional(string)      # (Optional) The command line to launch the application.
+      # auto_heal_enabled                             = optional(bool)        # (Optional) Should auto-heal be enabled for the Function App?
+      app_scale_limit                               = optional(number) # (Optional) The maximum number of workers that the Function App can scale out to.
+      application_insights_connection_string        = optional(string) # (Optional) The connection string of the Application Insights resource to send telemetry to.
+      application_insights_key                      = optional(string) # (Optional) The instrumentation key of the Application Insights resource to send telemetry to.
       container_registry_managed_identity_client_id = optional(string)
       container_registry_use_managed_identity       = optional(bool)
       default_documents                             = optional(list(string))            #(Optional) Specifies a list of Default Documents for the Windows Function App.
@@ -1185,7 +1148,7 @@ map(object({
         virtual_network_subnet_id = optional(string)
         headers = optional(map(object({
           x_azure_fdid      = optional(list(string))
-          x_fd_health_probe = optional(number)
+          x_fd_health_probe = optional(list(string), ["1"])
           x_forwarded_for   = optional(list(string))
           x_forwarded_host  = optional(list(string))
         })), {})
@@ -1199,7 +1162,7 @@ map(object({
         virtual_network_subnet_id = optional(string)
         headers = optional(map(object({
           x_azure_fdid      = optional(list(string))
-          x_fd_health_probe = optional(number)
+          x_fd_health_probe = optional(list(string), ["1"])
           x_forwarded_for   = optional(list(string))
           x_forwarded_host  = optional(list(string))
         })), {})
@@ -1393,12 +1356,14 @@ Default: `{}`
 
 ### <a name="input_new_service_plan"></a> [new\_service\_plan](#input\_new\_service\_plan)
 
-Description:   A map of objects that represent a new App Service Plan to create for the Function App.
+Description:   DEPRECATED, use `create_service_plan` and `service_plan` instead.  
+
+  A map of objects that represent a new App Service Plan to create for the Function App.
 
   - `name` - (Optional) The name of the App Service Plan.
   - `resource_group_name` - (Optional) The name of the resource group to deploy the App Service Plan in.
   - `location` - (Optional) The Azure region where the App Service Plan will be deployed. Defaults to the location of the resource group.
-  - `sku_name` - (Optional) The SKU name of the App Service Plan. Defaults to `B1`.
+  - `sku_name` - (Optional) The SKU name of the App Service Plan. Defaults to `P1v2`.
   - `app_service_environment_resource_id` - (Optional) The resource ID of the App Service Environment to deploy the App Service Plan in.
   - `maximum_elastic_worker_count` - (Optional) The maximum number of workers that can be allocated to this App Service Plan.
   - `worker_count` - (Optional) The number of workers to allocate to this App Service Plan.
@@ -1422,7 +1387,7 @@ object({
   })
 ```
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_private_dns_zone_resource_group_name"></a> [private\_dns\_zone\_resource\_group\_name](#input\_private\_dns\_zone\_resource\_group\_name)
 
@@ -1657,6 +1622,54 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_service_plan"></a> [service\_plan](#input\_service\_plan)
+
+Description:   A map of objects that represent a new App Service Plan to create for the Function App.
+
+  - `name` - (Optional) The name of the App Service Plan.
+  - `resource_group_name` - (Optional) The name of the resource group to deploy the App Service Plan in.
+  - `location` - (Optional) The Azure region where the App Service Plan will be deployed. Defaults to the location of the resource group.
+  - `sku_name` - (Optional) The SKU name of the App Service Plan. Defaults to `P1v2`.
+  > Possible values include `B1`, `B2`, `B3`, `D1`, `F1`, `I1`, `I2`, `I3`, `I1v2`, `I2v2`, `I3v2`, `I4v2`, `I5v2`, `I6v2`, `P1v2`, `P2v2`, `P3v2`, `P0v3`, `P1v3`,`P2v3`, `P3v3`, `P1mv3`, `P2mv3`, `P3mv3`, `P4mv3`, `P5mv3`, `S1`, `S2`, `S3`, `SHARED`, `EP1`, `EP2`, `EP3`, `FC1`, `WS1`, `WS2`, `WS3`, and `Y1`.
+  - `app_service_environment_resource_id` - (Optional) The resource ID of the App Service Environment to deploy the App Service Plan in.
+  - `maximum_elastic_worker_count` - (Optional) The maximum number of workers that can be allocated to Elastic SKU Plan. Cannot be set unless using an Elastic SKU.
+  - `worker_count` - (Optional) The number of workers to allocate to this App Service Plan. Defaults to `3`.
+  - `per_site_scaling_enabled` - (Optional) Should per site scaling be enabled for the App Service Plan? Defaults to `false`.
+  - `zone_balancing_enabled` - (Optional) Should zone balancing be enabled for the App Service Plan? Changing this forces a new resource to be created.
+  > **NOTE:** If this setting is set to `true` and the `worker_count` value is specified, it should be set to a multiple of the number of availability zones in the region. Please see the Azure documentation for the number of Availability Zones in your region.
+
+Type:
+
+```hcl
+object({
+    name                                = optional(string)
+    resource_group_name                 = optional(string)
+    location                            = optional(string)
+    sku_name                            = optional(string, "P1v2")
+    app_service_environment_resource_id = optional(string)
+    maximum_elastic_worker_count        = optional(number)
+    worker_count                        = optional(number, 3)
+    per_site_scaling_enabled            = optional(bool, false)
+    zone_balancing_enabled              = optional(bool, true)
+    lock = optional(object({
+      kind = string
+      name = optional(string, null)
+    }), null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
+    })), {})
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_service_plan_resource_id"></a> [service\_plan\_resource\_id](#input\_service\_plan\_resource\_id)
 
 Description: The resource ID of the App Service Plan to deploy the Function App in.
@@ -1795,7 +1808,7 @@ object({
     scm_minimum_tls_version                       = optional(string, "1.2")           #(Optional) Configures the minimum version of TLS required for SSL requests to Kudu. Possible values include: 1.0, 1.1, and 1.2. Defaults to 1.2.
     scm_use_main_ip_restriction                   = optional(bool, false)             #(Optional) Should the SCM use the same IP restrictions as the main site. Defaults to false.
     use_32_bit_worker                             = optional(bool, false)             #(Optional) Should the 32-bit worker process be used. Defaults to false.
-    vnet_route_all_enabled                        = optional(bool, false)             #(Optional) Should all traffic be routed to the virtual network. Defaults to false.
+    vnet_route_all_enabled                        = optional(bool, true)              #(Optional) Should all traffic be routed to the virtual network. Defaults to false.
     websockets_enabled                            = optional(bool, false)             #(Optional) Should Websockets be enabled. Defaults to false.
     worker_count                                  = optional(number)                  #(Optional) The number of workers for this Windows Function App. Only affects apps on an Elastic Premium plan.
     app_service_logs = optional(map(object({
@@ -1845,7 +1858,7 @@ object({
       virtual_network_subnet_id = optional(string)
       headers = optional(map(object({
         x_azure_fdid      = optional(list(string))
-        x_fd_health_probe = optional(number)
+        x_fd_health_probe = optional(list(string), ["1"])
         x_forwarded_for   = optional(list(string))
         x_forwarded_host  = optional(list(string))
       })), {})
@@ -1859,7 +1872,7 @@ object({
       virtual_network_subnet_id = optional(string)
       headers = optional(map(object({
         x_azure_fdid      = optional(list(string))
-        x_fd_health_probe = optional(number)
+        x_fd_health_probe = optional(list(string), ["1"])
         x_forwarded_for   = optional(list(string))
         x_forwarded_host  = optional(list(string))
       })), {})
@@ -1905,7 +1918,7 @@ object({
     resource_group_name              = optional(string)
     access_tier                      = optional(string, "Hot")
     account_kind                     = optional(string, "StorageV2")
-    account_replication_type         = optional(string, "LRS")
+    account_replication_type         = optional(string, "ZRS")
     allow_nested_items_to_be_public  = optional(bool, false)
     allowed_copy_scope               = optional(string, null)
     cross_tenant_replication_enabled = optional(bool, false)
@@ -2232,8 +2245,39 @@ object({
       index_document     = optional(string)
     }), null)
     shared_access_key_enabled = optional(bool, true)
-    min_tls_version           = optional(string, "TLS1_2")
-    nfsv3_enabled             = optional(bool, false)
+    shares = optional(map(object({
+      access_tier      = optional(string, "Hot")
+      enabled_protocol = optional(string)
+      metadata         = optional(map(string))
+      name             = string
+      quota            = number
+      root_squash      = optional(string)
+      signed_identifiers = optional(list(object({
+        id = string
+        access_policy = optional(object({
+          expiry_time = string
+          permission  = string
+          start_time  = string
+        }))
+      })))
+      role_assignments = optional(map(object({
+        role_definition_id_or_name             = string
+        principal_id                           = string
+        description                            = optional(string, null)
+        skip_service_principal_aad_check       = optional(bool, false)
+        condition                              = optional(string, null)
+        condition_version                      = optional(string, null)
+        delegated_managed_identity_resource_id = optional(string, null)
+      })), {})
+      timeouts = optional(object({
+        create = optional(string)
+        delete = optional(string)
+        read   = optional(string)
+        update = optional(string)
+      }))
+    })), {})
+    min_tls_version = optional(string, "TLS1_2")
+    nfsv3_enabled   = optional(bool, false)
     sas_policy = optional(object({
       expiration_action = optional(string, "Log")
       expiration_period = string
@@ -2269,6 +2313,14 @@ Default: `null`
 ### <a name="input_storage_account_primary_connection_string"></a> [storage\_account\_primary\_connection\_string](#input\_storage\_account\_primary\_connection\_string)
 
 Description: The primary connection string of the Storage Account to deploy the Function App in.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_storage_contentshare_name"></a> [storage\_contentshare\_name](#input\_storage\_contentshare\_name)
+
+Description: The name of the existing Storage Account Content Share for the Function App to use.
 
 Type: `string`
 
@@ -2387,6 +2439,10 @@ Default: `null`
 
 The following outputs are exported:
 
+### <a name="output_deprecated_variables"></a> [deprecated\_variables](#output\_deprecated\_variables)
+
+Description: The list of deprecated variables.
+
 ### <a name="output_function_app_private_dns_zone"></a> [function\_app\_private\_dns\_zone](#output\_function\_app\_private\_dns\_zone)
 
 Description: The resource output for the private dns zone of the function app
@@ -2407,9 +2463,13 @@ Description: This is the full output for the resource.
 
 Description: This is the full output for the resource.
 
-### <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name)
+### <a name="output_service_plan_resource"></a> [service\_plan\_resource](#output\_service\_plan\_resource)
 
-Description: This is the name of the storage account.
+Description: This is the name of the service plan.
+
+### <a name="output_storage_account_resource"></a> [storage\_account\_resource](#output\_storage\_account\_resource)
+
+Description: This is the full output for the storage account.
 
 ## Modules
 
@@ -2419,19 +2479,25 @@ The following Modules are called:
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.9.1
+Version: 0.16.1
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.1.2
+Version: 0.3.2
+
+### <a name="module_service_plan"></a> [service\_plan](#module\_service\_plan)
+
+Source: Azure/avm-res-web-serverfarm/azurerm
+
+Version: 0.4.0
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.2.4
+Version: 0.5.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
