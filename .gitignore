@@ -49,3 +49,6 @@ avm.tflint_example.merged.hcl
 avm.tflint_module.hcl
 avm.tflint_module.merged.hcl
 examples/*/policy
+
+# Files for local e2e tests
+sensitive.variables.tf

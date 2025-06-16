@@ -10,7 +10,7 @@ variable "storage_account" {
     resource_group_name              = optional(string)
     access_tier                      = optional(string, "Hot")
     account_kind                     = optional(string, "StorageV2")
-    account_replication_type         = optional(string, "LRS")
+    account_replication_type         = optional(string, "ZRS")
     allow_nested_items_to_be_public  = optional(bool, false)
     allowed_copy_scope               = optional(string, null)
     cross_tenant_replication_enabled = optional(bool, false)
@@ -337,8 +337,39 @@ variable "storage_account" {
       index_document     = optional(string)
     }), null)
     shared_access_key_enabled = optional(bool, true)
-    min_tls_version           = optional(string, "TLS1_2")
-    nfsv3_enabled             = optional(bool, false)
+    shares = optional(map(object({
+      access_tier      = optional(string, "Hot")
+      enabled_protocol = optional(string)
+      metadata         = optional(map(string))
+      name             = string
+      quota            = number
+      root_squash      = optional(string)
+      signed_identifiers = optional(list(object({
+        id = string
+        access_policy = optional(object({
+          expiry_time = string
+          permission  = string
+          start_time  = string
+        }))
+      })))
+      role_assignments = optional(map(object({
+        role_definition_id_or_name             = string
+        principal_id                           = string
+        description                            = optional(string, null)
+        skip_service_principal_aad_check       = optional(bool, false)
+        condition                              = optional(string, null)
+        condition_version                      = optional(string, null)
+        delegated_managed_identity_resource_id = optional(string, null)
+      })), {})
+      timeouts = optional(object({
+        create = optional(string)
+        delete = optional(string)
+        read   = optional(string)
+        update = optional(string)
+      }))
+    })), {})
+    min_tls_version = optional(string, "TLS1_2")
+    nfsv3_enabled   = optional(bool, false)
     sas_policy = optional(object({
       expiration_action = optional(string, "Log")
       expiration_period = string
