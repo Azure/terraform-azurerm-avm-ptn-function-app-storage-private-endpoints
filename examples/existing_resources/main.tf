@@ -71,20 +71,16 @@ module "avm_res_storage_storageaccount" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "0.5.0"
 
-  enable_telemetry              = var.enable_telemetry
-  name                          = module.naming.storage_account.name_unique
-  resource_group_name           = azurerm_resource_group.example.name
-  location                      = azurerm_resource_group.example.location
-  shared_access_key_enabled     = true
-  public_network_access_enabled = false
-
+  location            = azurerm_resource_group.example.location
+  name                = module.naming.storage_account.name_unique
+  resource_group_name = azurerm_resource_group.example.name
+  enable_telemetry    = var.enable_telemetry
   network_rules = {
     bypass                     = ["AzureServices"]
     default_action             = "Deny"
     ip_rules                   = [try(module.public_ip[0].public_ip, var.bypass_ip_cidr)]
     virtual_network_subnet_ids = toset([azurerm_subnet.app_service.id])
   }
-
   private_endpoints = {
     for endpoint in local.endpoints :
     endpoint => {
@@ -97,7 +93,7 @@ module "avm_res_storage_storageaccount" {
       }
     }
   }
-
+  public_network_access_enabled = false
   role_assignments = {
     storage_blob_data_owner = {
       role_definition_id_or_name = "Storage Blob Data Owner"
@@ -112,6 +108,7 @@ module "avm_res_storage_storageaccount" {
       principal_id               = module.test.resource.identity[0].principal_id
     }
   }
+  shared_access_key_enabled = true
   shares = {
     function_app_share = {
       name  = "${module.avm_res_storage_storageaccount.name}-share1"
@@ -124,55 +121,29 @@ module "avm_res_web_serverfarm" {
   source  = "Azure/avm-res-web-serverfarm/azurerm"
   version = "0.4.0"
 
-  enable_telemetry = var.enable_telemetry
-
-  resource_group_name    = azurerm_resource_group.example.name
   location               = azurerm_resource_group.example.location
   name                   = module.naming.app_service_plan.name_unique
-  sku_name               = "P1v2"
   os_type                = "Windows"
+  resource_group_name    = azurerm_resource_group.example.name
+  enable_telemetry       = var.enable_telemetry
+  sku_name               = "P1v2"
   zone_balancing_enabled = true
 }
 
 module "public_ip" {
-  count = var.bypass_ip_cidr == null ? 1 : 0
-
   source  = "lonegunmanb/public-ip/lonegunmanb"
   version = "0.1.0"
+  count   = var.bypass_ip_cidr == null ? 1 : 0
 }
 
 module "test" {
   source = "../../"
 
-  # source             = "Azure/avm-ptn-function-app-storage-private-endpoints/azurerm"
-  # version = "0.1.0"
-
-  enable_telemetry = var.enable_telemetry
-
-  name                = "${module.naming.function_app.name_unique}-secured"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-
+  location = azurerm_resource_group.example.location
+  name     = "${module.naming.function_app.name_unique}-secured"
   # Uses an existing app service plan
-  os_type                  = module.avm_res_web_serverfarm.resource.os_type
-  service_plan_resource_id = module.avm_res_web_serverfarm.resource_id
-
-  create_secure_storage_account = false
-  create_service_plan           = false
-
-  site_config = {
-    ftps_state = "FtpsOnly"
-    application_stack = {
-      stack_1 = {
-        node_version = "~20"
-      }
-    }
-  }
-
-  # app_settings = {
-  #   "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = module.avm_res_storage_storageaccount.resource.primary_connection_string
-  # }
-
+  os_type             = module.avm_res_web_serverfarm.resource.os_type
+  resource_group_name = azurerm_resource_group.example.name
   application_insights = {
     name                  = module.naming.application_insights.name_unique
     resource_group_name   = azurerm_resource_group.example.name
@@ -183,16 +154,9 @@ module "test" {
       environment = "dev-tf"
     }
   }
-
-  # Uses an existing storage account  
-  storage_account_name                      = module.avm_res_storage_storageaccount.name
-  storage_account_primary_connection_string = module.avm_res_storage_storageaccount.resource.primary_connection_string
-  storage_account_access_key                = module.avm_res_storage_storageaccount.resource.primary_access_key
-  storage_contentshare_name                 = "${module.avm_res_storage_storageaccount.name}-share1"
-
-  private_endpoint_subnet_resource_id = azurerm_subnet.example.id
-  virtual_network_subnet_id           = azurerm_subnet.app_service.id
-
+  create_secure_storage_account = false
+  create_service_plan           = false
+  enable_telemetry              = var.enable_telemetry
   # Creates the private dns zones via avm-res-network-privatednszone module
   private_dns_zones = {
     blob = {
@@ -222,6 +186,20 @@ module "test" {
     #   }
     # }
   }
-
-  # zone_key_for_link = "function_app"
+  private_endpoint_subnet_resource_id = azurerm_subnet.example.id
+  service_plan_resource_id            = module.avm_res_web_serverfarm.resource_id
+  site_config = {
+    ftps_state = "FtpsOnly"
+    application_stack = {
+      stack_1 = {
+        node_version = "~20"
+      }
+    }
+  }
+  storage_account_access_key = module.avm_res_storage_storageaccount.resource.primary_access_key
+  # Uses an existing storage account  
+  storage_account_name                      = module.avm_res_storage_storageaccount.name
+  storage_account_primary_connection_string = module.avm_res_storage_storageaccount.resource.primary_connection_string
+  storage_contentshare_name                 = "${module.avm_res_storage_storageaccount.name}-share1"
+  virtual_network_subnet_id                 = azurerm_subnet.app_service.id
 }
