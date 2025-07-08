@@ -104,7 +104,7 @@ module "test" {
       environment = "dev-tf"
     }
   }
-  # Uses the avm-res-storage-storageaccount module to create a new storage account 
+  # Uses the avm-res-storage-storageaccount module to create a new storage account
   create_secure_storage_account = true
   # Creates a new app service plan
   create_service_plan                  = true
@@ -244,7 +244,7 @@ module "vm_sku" {
 # Create the virtual machine
 module "avm_res_compute_virtualmachine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.18.0"
+  version = "0.19.3"
 
   location = azurerm_resource_group.example.location
   name     = "${module.naming.virtual_machine.name_unique}-tf"

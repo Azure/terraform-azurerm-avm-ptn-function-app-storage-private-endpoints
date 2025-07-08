@@ -1,6 +1,6 @@
 module "private_dns_zone" {
   source   = "Azure/avm-res-network-privatednszone/azurerm"
-  version  = "0.3.2"
+  version  = "0.3.4"
   for_each = { for zone, zone_values in var.private_dns_zones : zone => zone_values if var.private_dns_zones != null || length(var.private_dns_zones) > 0 }
 
   domain_name           = each.value.domain_name
