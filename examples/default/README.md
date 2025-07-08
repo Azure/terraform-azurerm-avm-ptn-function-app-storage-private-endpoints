@@ -29,10 +29,10 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_virtual_network" "example" {
-  address_space       = ["192.168.0.0/16"]
   location            = azurerm_resource_group.example.location
   name                = module.naming.virtual_network.name_unique
   resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["192.168.0.0/16"]
 }
 
 resource "azurerm_subnet" "private_endpoints" {
@@ -110,7 +110,7 @@ module "test" {
       environment = "dev-tf"
     }
   }
-  # Uses the avm-res-storage-storageaccount module to create a new storage account 
+  # Uses the avm-res-storage-storageaccount module to create a new storage account
   create_secure_storage_account = true
   # Creates a new app service plan
   create_service_plan                  = true
@@ -250,7 +250,7 @@ module "vm_sku" {
 # Create the virtual machine
 module "avm_res_compute_virtualmachine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.18.0"
+  version = "0.19.3"
 
   location = azurerm_resource_group.example.location
   name     = "${module.naming.virtual_machine.name_unique}-tf"
@@ -347,7 +347,15 @@ If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
+
+### <a name="input_subscription_id"></a> [subscription\_id](#input\_subscription\_id)
+
+Description: The Azure subscription ID where the resources will be deployed.
+
+Type: `string`
+
+Default: `"d717cc8e-8af6-4764-bb9a-c86a529be857"`
 
 ## Outputs
 
@@ -389,7 +397,7 @@ The following Modules are called:
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.18.0
+Version: 0.19.3
 
 ### <a name="module_function_app_private_dns_zone"></a> [function\_app\_private\_dns\_zone](#module\_function\_app\_private\_dns\_zone)
 
