@@ -1,6 +1,6 @@
 module "function_app" {
   source  = "Azure/avm-res-web-site/azurerm"
-  version = "0.16.1"
+  version = "0.17.2"
 
   kind                             = "functionapp"
   location                         = var.location
@@ -16,7 +16,7 @@ module "function_app" {
     var.app_settings,
     {
       # these are used by managed identity, but MI can only be used on dedicated plans, not on elastic premium
-      # ref: # https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings     
+      # ref: # https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings
       AzureWebJobsStorage__blobServiceUri      = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.blob.core.windows.net" : "https://${var.storage_account_name}.blob.core.windows.net"
       AzureWebJobsStorage__queueServiceUri     = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.queue.core.windows.net" : "https://${var.storage_account_name}.queue.core.windows.net"
       AzureWebJobsStorage__tableServiceUri     = var.create_secure_storage_account ? "https://${module.storage_account[0].name}.table.core.windows.net" : "https://${var.storage_account_name}.table.core.windows.net"
@@ -75,7 +75,7 @@ module "function_app" {
 }
 
 # Toggle on `vnetContentShareEnabled` site property.
-# This property cannot be set through `azurerm` currently, so we are using the `azapi_update_resource` resource to set it after deployment. 
+# This property cannot be set through `azurerm` currently, so we are using the `azapi_update_resource` resource to set it after deployment.
 # `WEBSITE_CONTENTOVERVNET` app setting is still needed for greenfield deployments.
 resource "azapi_update_resource" "this" {
   count = var.content_share_force_disabled != true ? 1 : 0

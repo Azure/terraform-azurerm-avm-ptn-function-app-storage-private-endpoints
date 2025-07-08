@@ -23,10 +23,10 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_virtual_network" "example" {
-  address_space       = ["192.168.0.0/16"]
   location            = azurerm_resource_group.example.location
   name                = module.naming.virtual_network.name_unique
   resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["192.168.0.0/16"]
 }
 
 resource "azurerm_subnet" "private_endpoints" {
@@ -104,7 +104,7 @@ module "test" {
       environment = "dev-tf"
     }
   }
-  # Uses the avm-res-storage-storageaccount module to create a new storage account 
+  # Uses the avm-res-storage-storageaccount module to create a new storage account
   create_secure_storage_account = true
   # Creates a new app service plan
   create_service_plan                  = true
@@ -244,7 +244,7 @@ module "vm_sku" {
 # Create the virtual machine
 module "avm_res_compute_virtualmachine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.18.0"
+  version = "0.19.3"
 
   location = azurerm_resource_group.example.location
   name     = "${module.naming.virtual_machine.name_unique}-tf"
