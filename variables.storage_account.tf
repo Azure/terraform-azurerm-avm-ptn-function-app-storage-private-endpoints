@@ -137,13 +137,13 @@ variable "storage_account" {
       container_delete_retention_policy = optional(object({
         days = optional(number, 7)
       }), { days = 7 })
-      cors_rule = optional(list(object({
+      cors_rule = optional(map(object({
         allowed_headers    = list(string)
         allowed_methods    = list(string)
         allowed_origins    = list(string)
         exposed_headers    = list(string)
         max_age_in_seconds = number
-      })))
+      })), {})
       delete_retention_policy = optional(object({
         days = optional(number, 7)
       }), { days = 7 })
@@ -164,14 +164,14 @@ variable "storage_account" {
       }))
     }), null)
     queue_encryption_key_type = optional(string, null)
-    queue_properties = optional(object({
-      cors_rule = optional(list(object({
+    queue_properties = optional(map(object({
+      cors_rule = optional(map(object({
         allowed_headers    = list(string)
         allowed_methods    = list(string)
         allowed_origins    = list(string)
         exposed_headers    = list(string)
         max_age_in_seconds = number
-      })))
+      })), {})
       diagnostic_settings = optional(map(object({
         name                                     = optional(string, null)
         log_categories                           = optional(set(string), [])
@@ -203,7 +203,7 @@ variable "storage_account" {
         retention_policy_days = optional(number)
         version               = string
       }))
-    }), null)
+    })), {})
     queues = optional(map(object({
       metadata = optional(map(string))
       name     = string
@@ -332,10 +332,10 @@ variable "storage_account" {
     edge_zone                         = optional(string, null)
     https_traffic_only_enabled        = optional(bool, true)
     infrastructure_encryption_enabled = optional(bool, false)
-    static_website = optional(object({
+    static_website = optional(map(object({
       error_404_document = optional(string)
       index_document     = optional(string)
-    }), null)
+    })), null)
     shared_access_key_enabled = optional(bool, true)
     shares = optional(map(object({
       access_tier      = optional(string, "Hot")

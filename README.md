@@ -2045,13 +2045,13 @@ object({
       container_delete_retention_policy = optional(object({
         days = optional(number, 7)
       }), { days = 7 })
-      cors_rule = optional(list(object({
+      cors_rule = optional(map(object({
         allowed_headers    = list(string)
         allowed_methods    = list(string)
         allowed_origins    = list(string)
         exposed_headers    = list(string)
         max_age_in_seconds = number
-      })))
+      })), {})
       delete_retention_policy = optional(object({
         days = optional(number, 7)
       }), { days = 7 })
@@ -2072,14 +2072,14 @@ object({
       }))
     }), null)
     queue_encryption_key_type = optional(string, null)
-    queue_properties = optional(object({
-      cors_rule = optional(list(object({
+    queue_properties = optional(map(object({
+      cors_rule = optional(map(object({
         allowed_headers    = list(string)
         allowed_methods    = list(string)
         allowed_origins    = list(string)
         exposed_headers    = list(string)
         max_age_in_seconds = number
-      })))
+      })), {})
       diagnostic_settings = optional(map(object({
         name                                     = optional(string, null)
         log_categories                           = optional(set(string), [])
@@ -2111,7 +2111,7 @@ object({
         retention_policy_days = optional(number)
         version               = string
       }))
-    }), null)
+    })), {})
     queues = optional(map(object({
       metadata = optional(map(string))
       name     = string
@@ -2240,10 +2240,10 @@ object({
     edge_zone                         = optional(string, null)
     https_traffic_only_enabled        = optional(bool, true)
     infrastructure_encryption_enabled = optional(bool, false)
-    static_website = optional(object({
+    static_website = optional(map(object({
       error_404_document = optional(string)
       index_document     = optional(string)
-    }), null)
+    })), null)
     shared_access_key_enabled = optional(bool, true)
     shares = optional(map(object({
       access_tier      = optional(string, "Hot")
@@ -2479,25 +2479,25 @@ The following Modules are called:
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.16.1
+Version: 0.17.2
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.3.2
+Version: 0.3.4
 
 ### <a name="module_service_plan"></a> [service\_plan](#module\_service\_plan)
 
 Source: Azure/avm-res-web-serverfarm/azurerm
 
-Version: 0.4.0
+Version: 0.7.0
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.5.0
+Version: 0.6.3
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

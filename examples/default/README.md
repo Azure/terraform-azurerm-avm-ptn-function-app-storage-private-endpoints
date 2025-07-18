@@ -6,7 +6,7 @@ This deploys the pattern module in its simplest form.
 ```hcl
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = ">= 0.3.0"
+  version = "= 0.3.0"
 }
 
 resource "random_integer" "region_index" {
@@ -18,7 +18,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = ">= 0.3.0"
+  version = "= 0.3.0"
 }
 
 data "azurerm_client_config" "this" {}
@@ -110,7 +110,7 @@ module "test" {
       environment = "dev-tf"
     }
   }
-  # Uses the avm-res-storage-storageaccount module to create a new storage account 
+  # Uses the avm-res-storage-storageaccount module to create a new storage account
   create_secure_storage_account = true
   # Creates a new app service plan
   create_service_plan                  = true
@@ -250,7 +250,7 @@ module "vm_sku" {
 # Create the virtual machine
 module "avm_res_compute_virtualmachine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.18.0"
+  version = "0.19.3"
 
   location = azurerm_resource_group.example.location
   name     = "${module.naming.virtual_machine.name_unique}-tf"
@@ -347,7 +347,7 @@ If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ## Outputs
 
@@ -389,7 +389,7 @@ The following Modules are called:
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.18.0
+Version: 0.19.3
 
 ### <a name="module_function_app_private_dns_zone"></a> [function\_app\_private\_dns\_zone](#module\_function\_app\_private\_dns\_zone)
 
@@ -401,7 +401,7 @@ Version: 0.3.2
 
 Source: Azure/naming/azurerm
 
-Version: >= 0.3.0
+Version: = 0.3.0
 
 ### <a name="module_public_ip"></a> [public\_ip](#module\_public\_ip)
 
@@ -413,7 +413,7 @@ Version: 0.1.0
 
 Source: Azure/regions/azurerm
 
-Version: >= 0.3.0
+Version: = 0.3.0
 
 ### <a name="module_test"></a> [test](#module\_test)
 
