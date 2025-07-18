@@ -349,14 +349,6 @@ Type: `bool`
 
 Default: `false`
 
-### <a name="input_subscription_id"></a> [subscription\_id](#input\_subscription\_id)
-
-Description: The Azure subscription ID where the resources will be deployed.
-
-Type: `string`
-
-Default: `"d717cc8e-8af6-4764-bb9a-c86a529be857"`
-
 ## Outputs
 
 The following outputs are exported:
