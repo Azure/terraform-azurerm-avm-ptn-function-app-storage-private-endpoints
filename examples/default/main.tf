@@ -1,6 +1,6 @@
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = ">= 0.3.0"
+  version = "= 0.3.0"
 }
 
 resource "random_integer" "region_index" {
@@ -12,7 +12,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = ">= 0.3.0"
+  version = "= 0.3.0"
 }
 
 data "azurerm_client_config" "this" {}

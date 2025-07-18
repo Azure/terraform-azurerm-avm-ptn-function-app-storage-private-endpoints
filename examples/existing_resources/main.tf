@@ -2,7 +2,7 @@
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = ">= 0.3.0"
+  version = "= 0.3.0"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -15,7 +15,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = ">= 0.3.0"
+  version = "= 0.3.0"
 }
 
 data "azurerm_client_config" "this" {}
@@ -197,7 +197,7 @@ module "test" {
     }
   }
   storage_account_access_key = module.avm_res_storage_storageaccount.resource.primary_access_key
-  # Uses an existing storage account  
+  # Uses an existing storage account
   storage_account_name                      = module.avm_res_storage_storageaccount.name
   storage_account_primary_connection_string = module.avm_res_storage_storageaccount.resource.primary_connection_string
   storage_contentshare_name                 = "${module.avm_res_storage_storageaccount.name}-share1"
