@@ -1,7 +1,7 @@
 module "private_dns_zone" {
   source   = "Azure/avm-res-network-privatednszone/azurerm"
   version  = "0.3.4"
-  for_each = { for zone, zone_values in var.private_dns_zones : zone => zone_values if var.private_dns_zones != null || length(var.private_dns_zones) > 0 }
+  for_each = { for zone, zone_values in var.private_dns_zones : zone => zone_values if(var.private_dns_zones != null || length(var.private_dns_zones) > 0) && var.use_external_managed_dns_for_storage == false }
 
   domain_name           = each.value.domain_name
   resource_group_name   = each.value.resource_group_name

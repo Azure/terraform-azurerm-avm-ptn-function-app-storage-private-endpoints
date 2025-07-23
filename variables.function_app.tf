@@ -53,7 +53,7 @@ variable "app_service_active_slot" {
   ```
   Object that sets the active slot for the App Service.
 
-  `slot_key` - The key of the slot object to set as active. 
+  `slot_key` - The key of the slot object to set as active.
   `overwrite_network_config` - Determines if the network configuration should be overwritten. Defaults to `true`.
 
   ```
@@ -66,8 +66,8 @@ variable "app_settings" {
 
   }
   description = <<DESCRIPTION
-  A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values to assign to the Function App. 
-  
+  A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values to assign to the Function App.
+
   ```terraform
   app_settings = {
     WEBSITE_NODE_DEFAULT_VERSION = "10.14.1"
@@ -165,7 +165,7 @@ variable "auth_settings" {
 
   }
   description = <<DESCRIPTION
-  A map of authentication settings to assign to the Function App. 
+  A map of authentication settings to assign to the Function App.
  - `additional_login_parameters` - (Optional) Specifies a map of login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
  - `allowed_external_redirect_urls` - (Optional) Specifies a list of External URLs that can be redirected to as part of logging in or logging out of the Linux Web App.
  - `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount`, `Twitter`, `Github`
@@ -216,7 +216,7 @@ variable "auth_settings" {
  - `consumer_key` - (Required) The OAuth 1.0a consumer key of the Twitter application used for sign-in.
  - `consumer_secret` - (Optional) The OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret_setting_name`.
  - `consumer_secret_setting_name` - (Optional) The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret`.
-  
+
   ```terraform
   auth_settings = {
     example = {
@@ -329,7 +329,7 @@ variable "auth_settings_v2" {
   }
   description = <<DESCRIPTION
 A map of authentication settings (V2) to assign to the Function App.
-    
+
 - `auth_enabled` - (Optional) Should the AuthV2 Settings be enabled. Defaults to `false`.
 - `config_file_path` - (Optional) The path to the App Auth settings.
 - `default_provider` - (Optional) The Default Authentication Provider to use when the `unauthenticated_action` is set to `RedirectToLoginPage`. Possible values include: `apple`, `azureactivedirectory`, `facebook`, `github`, `google`, `twitter` and the `name` of your `custom_oidc_v2` provider.
@@ -1358,7 +1358,7 @@ variable "private_endpoints_manage_dns_zone_group" {
 variable "public_network_access_enabled" {
   type        = bool
   default     = false
-  description = "Should the Function App be accessible from the public network? Defaults to `true`."
+  description = "Should the Function App be accessible from the public network? Defaults to `false`."
 }
 
 variable "role_assignments" {

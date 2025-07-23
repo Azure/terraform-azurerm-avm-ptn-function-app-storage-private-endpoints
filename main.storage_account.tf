@@ -19,13 +19,22 @@ module "storage_account" {
   min_tls_version                  = var.storage_account.min_tls_version
   network_rules                    = var.storage_account.network_rules
   nfsv3_enabled                    = var.storage_account.nfsv3_enabled
-  private_endpoints = {
+  private_endpoints = var.use_external_managed_dns_for_storage == false && (var.private_dns_zones != null || length(var.private_dns_zones) > 0) ? {
     for endpoint in local.endpoints :
     endpoint => {
       name                          = "pe-${endpoint}-${var.storage_account.name}"
       subnet_resource_id            = var.private_endpoint_subnet_resource_id
       subresource_name              = endpoint
       private_dns_zone_resource_ids = ["/subscriptions/${var.private_dns_zone_subscription_id}/resourceGroups/${var.private_dns_zone_resource_group_name}/providers/Microsoft.Network/privateDnsZones/privatelink.${endpoint}.core.windows.net"]
+      tags                          = var.tags
+    }
+    } : {
+    for endpoint in var.storage_account.endpoints :
+    endpoint.type => {
+      name                          = "pe-${endpoint.type}-${var.storage_account.name}"
+      subnet_resource_id            = var.private_endpoint_subnet_resource_id
+      subresource_name              = endpoint.type
+      private_dns_zone_resource_ids = [endpoint.private_dns_zone_resource_id]
       tags                          = var.tags
     }
   }

@@ -3,6 +3,7 @@ locals {
     "westus2",
     "canadacentral"
   ]
+  # endpoints = toset(["blob", "queue", "table", "file"])
   endpoint_zones = {
     blob = {
       domain_name         = "privatelink.blob.core.windows.net"
@@ -13,7 +14,7 @@ locals {
           vnetid       = azurerm_virtual_network.example.id
         }
       }
-    }
+    },
     file = {
       domain_name         = "privatelink.file.core.windows.net"
       resource_group_name = azurerm_resource_group.example.name
@@ -23,7 +24,7 @@ locals {
           vnetid       = azurerm_virtual_network.example.id
         }
       }
-    },
+    }
     queue = {
       domain_name         = "privatelink.queue.core.windows.net"
       resource_group_name = azurerm_resource_group.example.name
@@ -45,5 +46,4 @@ locals {
       }
     }
   }
-  endpoints = toset(["blob", "queue", "table", "file"])
 }
