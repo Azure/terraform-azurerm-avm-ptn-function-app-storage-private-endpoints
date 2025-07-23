@@ -1423,14 +1423,14 @@ map(object({
       records             = list(string)
       tags                = optional(map(string), null)
     })), {})
-    aaaa_records = optional(map(object({
-      name                = string
-      resource_group_name = string
-      zone_name           = string
-      ttl                 = number
-      records             = list(string)
-      tags                = optional(map(string), null)
-    })), {})
+    # aaaa_records = optional(map(object({
+    #   name                = string
+    #   resource_group_name = string
+    #   zone_name           = string
+    #   ttl                 = number
+    #   records             = list(string)
+    #   tags                = optional(map(string), null)
+    # })), {})
     cname_records = optional(map(object({
       name                = string
       resource_group_name = string
@@ -1439,17 +1439,17 @@ map(object({
       record              = string
       tags                = optional(map(string), null)
     })), {})
-    mx_records = optional(map(object({
-      name                = optional(string, "@")
-      resource_group_name = string
-      zone_name           = string
-      ttl                 = number
-      records = map(object({
-        preference = number
-        exchange   = string
-      }))
-      tags = optional(map(string), null)
-    })), {})
+    # mx_records = optional(map(object({
+    #   name                = optional(string, "@")
+    #   resource_group_name = string
+    #   zone_name           = string
+    #   ttl                 = number
+    #   records = map(object({
+    #     preference = number
+    #     exchange   = string
+    #   }))
+    #   tags = optional(map(string), null)
+    # })), {})
     ptr_records = optional(map(object({
       name                = string
       resource_group_name = string
@@ -1467,19 +1467,19 @@ map(object({
       ttl          = optional(number, 3600)
       tags         = optional(map(string), null)
     }), null)
-    srv_records = optional(map(object({
-      name                = string
-      resource_group_name = string
-      zone_name           = string
-      ttl                 = number
-      records = map(object({
-        priority = number
-        weight   = number
-        port     = number
-        target   = string
-      }))
-      tags = optional(map(string), null)
-    })), {})
+    # srv_records = optional(map(object({
+    #   name                = string
+    #   resource_group_name = string
+    #   zone_name           = string
+    #   ttl                 = number
+    #   records = map(object({
+    #     priority = number
+    #     weight   = number
+    #     port     = number
+    #     target   = string
+    #   }))
+    #   tags = optional(map(string), null)
+    # })), {})
     tags = optional(map(string), null)
     txt_records = optional(map(object({
       name                = string
@@ -1586,7 +1586,7 @@ Default: `true`
 
 ### <a name="input_public_network_access_enabled"></a> [public\_network\_access\_enabled](#input\_public\_network\_access\_enabled)
 
-Description: Should the Function App be accessible from the public network? Defaults to `true`.
+Description: Should the Function App be accessible from the public network? Defaults to `false`.
 
 Type: `bool`
 
@@ -1905,7 +1905,7 @@ Description:   A map of objects that represent a Storage Account to mount to the
   - `name` - (Optional) The name of the Storage Account.
   - `resource_group_name` - (Optional) The name of the resource group to deploy the Storage Account in.
   - `account_replication_type` - (Optional) The replication type of the Storage Account. Defaults to `LRS`.
-
+  - `endpoints` - (Optional) A map of objects that represent the endpoints for the Storage Account.
   ```terraform
 
 ```
@@ -1914,11 +1914,20 @@ Type:
 
 ```hcl
 object({
-    name                             = optional(string)
-    resource_group_name              = optional(string)
-    access_tier                      = optional(string, "Hot")
-    account_kind                     = optional(string, "StorageV2")
-    account_replication_type         = optional(string, "ZRS")
+    name                     = optional(string)
+    resource_group_name      = optional(string)
+    access_tier              = optional(string, "Hot")
+    account_kind             = optional(string, "StorageV2")
+    account_replication_type = optional(string, "ZRS")
+    endpoints = optional(map(object({
+      name                         = optional(string, null)
+      type                         = string
+      private_dns_zone_resource_id = optional(string, null)
+      })), {
+      blob = {
+        type = "blob"
+      }
+    })
     allow_nested_items_to_be_public  = optional(bool, false)
     allowed_copy_scope               = optional(string, null)
     cross_tenant_replication_enabled = optional(bool, false)
@@ -2402,6 +2411,14 @@ object({
 ```
 
 Default: `null`
+
+### <a name="input_use_external_managed_dns_for_storage"></a> [use\_external\_managed\_dns\_for\_storage](#input\_use\_external\_managed\_dns\_for\_storage)
+
+Description: Should the module reference an externally managed DNS zone? If true, private DNS zones will not be created by this module.
+
+Type: `bool`
+
+Default: `false`
 
 ### <a name="input_virtual_network_subnet_id"></a> [virtual\_network\_subnet\_id](#input\_virtual\_network\_subnet\_id)
 

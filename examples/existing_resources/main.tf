@@ -48,6 +48,7 @@ resource "azurerm_subnet" "example" {
   name                 = module.naming.subnet.name_unique
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
+  service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_subnet" "app_service" {
@@ -67,6 +68,17 @@ resource "azurerm_subnet" "app_service" {
   }
 }
 
+module "private_dns_zone" {
+  source   = "Azure/avm-res-network-privatednszone/azurerm"
+  version  = "0.3.4"
+  for_each = local.endpoint_zones
+
+  domain_name           = each.value.domain_name
+  resource_group_name   = each.value.resource_group_name
+  enable_telemetry      = var.enable_telemetry
+  virtual_network_links = each.value.virtual_network_links
+}
+
 module "avm_res_storage_storageaccount" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "0.5.0"
@@ -79,7 +91,7 @@ module "avm_res_storage_storageaccount" {
     bypass                     = ["AzureServices"]
     default_action             = "Deny"
     ip_rules                   = [try(module.public_ip[0].public_ip, var.bypass_ip_cidr)]
-    virtual_network_subnet_ids = toset([azurerm_subnet.app_service.id])
+    virtual_network_subnet_ids = toset([azurerm_subnet.app_service.id, azurerm_subnet.example.id])
   }
   private_endpoints = {
     for endpoint in local.endpoints :
@@ -87,7 +99,7 @@ module "avm_res_storage_storageaccount" {
       name                          = "pe-${endpoint}-${module.naming.storage_account.name_unique}"
       subnet_resource_id            = azurerm_subnet.example.id
       subresource_name              = endpoint
-      private_dns_zone_resource_ids = ["/subscriptions/${data.azurerm_client_config.this.subscription_id}/resourceGroups/${azurerm_resource_group.example.name}/providers/Microsoft.Network/privateDnsZones/${endpoint}.core.windows.net"]
+      private_dns_zone_resource_ids = ["/subscriptions/${data.azurerm_client_config.this.subscription_id}/resourceGroups/${azurerm_resource_group.example.name}/providers/Microsoft.Network/privateDnsZones/privatelink.${endpoint}.core.windows.net"]
       tags = {
         environment = "dev"
       }
@@ -127,7 +139,7 @@ module "avm_res_web_serverfarm" {
   resource_group_name    = azurerm_resource_group.example.name
   enable_telemetry       = var.enable_telemetry
   sku_name               = "P1v2"
-  zone_balancing_enabled = true
+  zone_balancing_enabled = false
 }
 
 module "public_ip" {
@@ -159,32 +171,7 @@ module "test" {
   enable_telemetry              = var.enable_telemetry
   # Creates the private dns zones via avm-res-network-privatednszone module
   private_dns_zones = {
-    blob = {
-      domain_name         = "blob.core.windows.net"
-      resource_group_name = azurerm_resource_group.example.name
-    },
-    file = {
-      domain_name         = "file.core.windows.net"
-      resource_group_name = azurerm_resource_group.example.name
-    },
-    queue = {
-      domain_name         = "queue.core.windows.net"
-      resource_group_name = azurerm_resource_group.example.name
-    },
-    table = {
-      domain_name         = "table.core.windows.net"
-      resource_group_name = azurerm_resource_group.example.name
-    }
-    # function_app = {
-    #   domain_name         = "privatelink.azurewebsites.net"
-    #   resource_group_name = azurerm_resource_group.example.name
-    #   virtual_network_links = {
-    #     example = {
-    #       vnetlinkname = "${azurerm_virtual_network.example.name}-link"
-    #       vnetid       = azurerm_virtual_network.example.id
-    #     }
-    #   }
-    # }
+
   }
   private_endpoint_subnet_resource_id = azurerm_subnet.example.id
   service_plan_resource_id            = module.avm_res_web_serverfarm.resource_id

@@ -6,11 +6,20 @@ variable "create_secure_storage_account" {
 
 variable "storage_account" {
   type = object({
-    name                             = optional(string)
-    resource_group_name              = optional(string)
-    access_tier                      = optional(string, "Hot")
-    account_kind                     = optional(string, "StorageV2")
-    account_replication_type         = optional(string, "ZRS")
+    name                     = optional(string)
+    resource_group_name      = optional(string)
+    access_tier              = optional(string, "Hot")
+    account_kind             = optional(string, "StorageV2")
+    account_replication_type = optional(string, "ZRS")
+    endpoints = optional(map(object({
+      name                         = optional(string, null)
+      type                         = string
+      private_dns_zone_resource_id = optional(string, null)
+      })), {
+      blob = {
+        type = "blob"
+      }
+    })
     allow_nested_items_to_be_public  = optional(bool, false)
     allowed_copy_scope               = optional(string, null)
     cross_tenant_replication_enabled = optional(bool, false)
@@ -391,7 +400,7 @@ variable "storage_account" {
   - `name` - (Optional) The name of the Storage Account.
   - `resource_group_name` - (Optional) The name of the resource group to deploy the Storage Account in.
   - `account_replication_type` - (Optional) The replication type of the Storage Account. Defaults to `LRS`.
-
+  - `endpoints` - (Optional) A map of objects that represent the endpoints for the Storage Account.
   ```terraform
 
   ```
