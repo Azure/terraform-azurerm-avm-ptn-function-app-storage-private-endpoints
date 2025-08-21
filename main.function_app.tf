@@ -87,5 +87,7 @@ resource "azapi_update_resource" "this" {
       vnetContentShareEnabled = true
     }
   }
+  read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 }
 

@@ -53,3 +53,5 @@ examples/*/policy
 # Files for local e2e tests
 sensitive.variables.tf
 *.cache
+*.mptfbackup
+.avm
