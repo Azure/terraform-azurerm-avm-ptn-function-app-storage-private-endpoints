@@ -185,6 +185,46 @@ module "test" {
     }
   }
   storage_account = {
+    diagnostic_settings_blob = {
+      blob1 = {
+        name                  = "diag"
+        workspace_resource_id = azurerm_log_analytics_workspace.example.id
+        log_categories        = ["audit", "alllogs"]
+        metric_categories     = ["Capacity", "Transaction"]
+      }
+    }
+    diagnostic_settings_file = {
+      file1 = {
+        name                  = "diag"
+        workspace_resource_id = azurerm_log_analytics_workspace.example.id
+        log_categories        = ["audit", "alllogs"]
+        metric_categories     = ["Capacity", "Transaction"]
+      }
+    }
+    diagnostic_settings_queue = {
+      queue1 = {
+        name                  = "diag"
+        workspace_resource_id = azurerm_log_analytics_workspace.example.id
+        log_categories        = ["audit", "alllogs"]
+        metric_categories     = ["Capacity", "Transaction"]
+      }
+    }
+    diagnostic_settings_storage_account = {
+      storage = {
+        name                  = "diag"
+        workspace_resource_id = azurerm_log_analytics_workspace.example.id
+        log_categories        = ["audit", "alllogs"]
+        metric_categories     = ["Capacity", "Transaction"]
+      }
+    }
+    diagnostic_settings_table = {
+      table1 = {
+        name                  = "diag"
+        workspace_resource_id = azurerm_log_analytics_workspace.example.id
+        log_categories        = ["audit", "alllogs"]
+        metric_categories     = ["Capacity", "Transaction"]
+      }
+    }
     name                = module.naming.storage_account.name_unique
     resource_group_name = azurerm_resource_group.example.name
     network_rules = {

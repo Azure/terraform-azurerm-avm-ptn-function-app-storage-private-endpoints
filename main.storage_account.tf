@@ -1,24 +1,29 @@
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.3"
+  version = "0.6.4"
   count   = var.create_secure_storage_account ? 1 : 0
 
-  location                         = var.location
-  name                             = var.storage_account.name
-  resource_group_name              = coalesce(var.storage_account.resource_group_name, var.resource_group_name)
-  access_tier                      = var.storage_account.access_tier
-  account_kind                     = var.storage_account.account_kind
-  account_replication_type         = var.storage_account.account_replication_type
-  containers                       = var.storage_account.containers
-  cross_tenant_replication_enabled = var.storage_account.cross_tenant_replication_enabled
-  edge_zone                        = var.storage_account.edge_zone
-  enable_telemetry                 = var.enable_telemetry
-  https_traffic_only_enabled       = var.storage_account.https_traffic_only_enabled
-  immutability_policy              = var.storage_account.immutability_policy
-  lock                             = var.storage_account.lock
-  min_tls_version                  = var.storage_account.min_tls_version
-  network_rules                    = var.storage_account.network_rules
-  nfsv3_enabled                    = var.storage_account.nfsv3_enabled
+  location                            = var.location
+  name                                = var.storage_account.name
+  resource_group_name                 = coalesce(var.storage_account.resource_group_name, var.resource_group_name)
+  access_tier                         = var.storage_account.access_tier
+  account_kind                        = var.storage_account.account_kind
+  account_replication_type            = var.storage_account.account_replication_type
+  containers                          = var.storage_account.containers
+  cross_tenant_replication_enabled    = var.storage_account.cross_tenant_replication_enabled
+  diagnostic_settings_blob            = var.storage_account.diagnostic_settings_blob
+  diagnostic_settings_file            = var.storage_account.diagnostic_settings_file
+  diagnostic_settings_queue           = var.storage_account.diagnostic_settings_queue
+  diagnostic_settings_storage_account = var.storage_account.diagnostic_settings_storage_account
+  diagnostic_settings_table           = var.storage_account.diagnostic_settings_table
+  edge_zone                           = var.storage_account.edge_zone
+  enable_telemetry                    = var.enable_telemetry
+  https_traffic_only_enabled          = var.storage_account.https_traffic_only_enabled
+  immutability_policy                 = var.storage_account.immutability_policy
+  lock                                = var.storage_account.lock
+  min_tls_version                     = var.storage_account.min_tls_version
+  network_rules                       = var.storage_account.network_rules
+  nfsv3_enabled                       = var.storage_account.nfsv3_enabled
   private_endpoints = var.use_external_managed_dns_for_storage == false && (var.private_dns_zones != null || length(var.private_dns_zones) > 0) ? {
     for endpoint in local.endpoints :
     endpoint => {
