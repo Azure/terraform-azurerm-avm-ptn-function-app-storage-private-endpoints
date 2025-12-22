@@ -64,7 +64,7 @@ module "function_app" {
   storage_account_name                           = var.create_secure_storage_account ? module.storage_account[0].name : var.storage_account_name
   storage_key_vault_secret_id                    = var.storage_key_vault_secret_id
   storage_shares_to_mount                        = var.storage_shares_to_mount
-  storage_uses_managed_identity                  = var.managed_identities.system_assigned == true || len(var.managed_identities.user_assigned_resource_ids) > 0 ? true : false
+  storage_uses_managed_identity                  = var.managed_identities.system_assigned == true || length(var.managed_identities.user_assigned_resource_ids) > 0 ? true : false
   tags                                           = var.tags
   timeouts                                       = var.timeouts
   virtual_network_subnet_id                      = var.virtual_network_subnet_id
