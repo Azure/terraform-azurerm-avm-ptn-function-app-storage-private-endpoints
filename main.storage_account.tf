@@ -21,7 +21,7 @@ module "storage_account" {
   https_traffic_only_enabled          = var.storage_account.https_traffic_only_enabled
   immutability_policy                 = var.storage_account.immutability_policy
   lock                                = var.storage_account.lock
-  managed_identities                  = var.managed_identities
+  managed_identities                  = var.storage_account.managed_identities
   min_tls_version                     = var.storage_account.min_tls_version
   network_rules                       = var.storage_account.network_rules
   nfsv3_enabled                       = var.storage_account.nfsv3_enabled
@@ -48,7 +48,8 @@ module "storage_account" {
   queue_encryption_key_type     = var.storage_account.queue_encryption_key_type
   queue_properties              = var.storage_account.queue_properties
   queues                        = var.storage_account.queues
-  role_assignments = {
+  role_assignments = merge(
+    var.managed_identities.system_assigned ? {
     storage_blob_data_owner = {
       role_definition_id_or_name = "Storage Blob Data Owner"
       principal_id               = module.function_app.resource.identity[0].principal_id
@@ -61,7 +62,9 @@ module "storage_account" {
       role_definition_id_or_name = "Storage Queue Data Contributor"
       principal_id               = module.function_app.resource.identity[0].principal_id
     }
-  }
+  } : {}, 
+   var.storage_account.role_assignments
+   )
   routing      = var.storage_account.routing
   sftp_enabled = var.storage_account.sftp_enabled
   # this is necessary as managed identity does not work with Elastic Premium Plans due to missing authentication support in Azure Files
