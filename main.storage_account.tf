@@ -21,6 +21,7 @@ module "storage_account" {
   https_traffic_only_enabled          = var.storage_account.https_traffic_only_enabled
   immutability_policy                 = var.storage_account.immutability_policy
   lock                                = var.storage_account.lock
+  managed_identities                  = var.managed_identities
   min_tls_version                     = var.storage_account.min_tls_version
   network_rules                       = var.storage_account.network_rules
   nfsv3_enabled                       = var.storage_account.nfsv3_enabled
