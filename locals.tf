@@ -28,7 +28,7 @@ locals {
   has_system_assigned_identity = var.managed_identities.system_assigned
 
   system_assigned_identity_role_assignments = local.has_system_assigned_identity ? {
-    for key, value in storage_account_role_definitions : key => {
+    for key, value in local.storage_account_role_definitions : key => {
       role_definition_id_or_name = value
       principal_id               = module.function_app.resource.identity[0].principal_id
     }
