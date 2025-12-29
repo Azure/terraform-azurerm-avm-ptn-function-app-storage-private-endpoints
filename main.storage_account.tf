@@ -48,25 +48,9 @@ module "storage_account" {
   queue_encryption_key_type     = var.storage_account.queue_encryption_key_type
   queue_properties              = var.storage_account.queue_properties
   queues                        = var.storage_account.queues
-  role_assignments = merge(
-    var.managed_identities.system_assigned ? {
-    storage_blob_data_owner = {
-      role_definition_id_or_name = "Storage Blob Data Owner"
-      principal_id               = module.function_app.resource.identity[0].principal_id
-    }
-    storage_account_contributor = {
-      role_definition_id_or_name = "Storage Account Contributor"
-      principal_id               = module.function_app.resource.identity[0].principal_id
-    }
-    storage_queue_data_contributor = {
-      role_definition_id_or_name = "Storage Queue Data Contributor"
-      principal_id               = module.function_app.resource.identity[0].principal_id
-    }
-  } : {}, 
-   var.storage_account.role_assignments
-   )
-  routing      = var.storage_account.routing
-  sftp_enabled = var.storage_account.sftp_enabled
+  role_assignments              = local.storage_account_role_assignments
+  routing                       = var.storage_account.routing
+  sftp_enabled                  = var.storage_account.sftp_enabled
   # this is necessary as managed identity does not work with Elastic Premium Plans due to missing authentication support in Azure Files
   shared_access_key_enabled          = var.storage_account.shared_access_key_enabled
   shares                             = length(var.storage_account.shares) > 0 ? local.var_shares : local.shares
