@@ -178,11 +178,14 @@ module "test" {
     }
   }
   storage_account = {
+    tags = {
+      SecurityControl = "Ignore"
+    }
     diagnostic_settings_blob = {
       blob1 = {
         name                  = "diag"
         workspace_resource_id = azurerm_log_analytics_workspace.example.id
-        log_categories        = ["audit", "alllogs"]
+        # log_categories        = ["audit", "alllogs"]
         metric_categories     = ["Capacity", "Transaction"]
       }
     }
@@ -190,7 +193,7 @@ module "test" {
       file1 = {
         name                  = "diag"
         workspace_resource_id = azurerm_log_analytics_workspace.example.id
-        log_categories        = ["audit", "alllogs"]
+        # log_categories        = ["audit", "alllogs"]
         metric_categories     = ["Capacity", "Transaction"]
       }
     }
@@ -198,7 +201,7 @@ module "test" {
       queue1 = {
         name                  = "diag"
         workspace_resource_id = azurerm_log_analytics_workspace.example.id
-        log_categories        = ["audit", "alllogs"]
+        # log_categories        = ["audit", "alllogs"]
         metric_categories     = ["Capacity", "Transaction"]
       }
     }
@@ -206,19 +209,24 @@ module "test" {
       storage = {
         name                  = "diag"
         workspace_resource_id = azurerm_log_analytics_workspace.example.id
-        log_categories        = ["audit", "alllogs"]
-        metric_categories     = ["Capacity", "Transaction"]
+        # log_categories        = ["audit", "alllogs"]
+        metric_categories     = ["Transaction"]
       }
     }
     diagnostic_settings_table = {
       table1 = {
         name                  = "diag"
         workspace_resource_id = azurerm_log_analytics_workspace.example.id
-        log_categories        = ["audit", "alllogs"]
+        # log_categories        = ["audit", "alllogs"]
         metric_categories     = ["Capacity", "Transaction"]
       }
     }
-    name                = module.naming.storage_account.name_unique
+    name = module.naming.storage_account.name_unique
+    role_assignments = {
+      storage_blob_data_owner = {
+        role_definition_id_or_name = "Storage Blob Data Owner"
+      }
+    }
     resource_group_name = azurerm_resource_group.example.name
     network_rules = {
       bypass                     = ["AzureServices"]
@@ -317,7 +325,7 @@ module "avm_res_compute_virtualmachine" {
   generate_admin_password_or_ssh_key = false
   os_type                            = "Windows"
   provision_vm_agent                 = false
-  sku_size                           = module.vm_sku.sku
+  sku_size                           = "Standard_D2s_v3"
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"

@@ -89,6 +89,10 @@ variable "storage_account" {
     }), null)
     public_network_access_enabled = optional(bool, false)
     tags                          = optional(map(string), null)
+    managed_identities = optional(object({
+      system_assigned            = optional(bool, false)
+      user_assigned_resource_ids = optional(set(string), [])
+    }), {})
     network_rules = optional(object({
       bypass                     = optional(set(string), [])
       default_action             = optional(string, "Deny")
@@ -352,7 +356,7 @@ variable "storage_account" {
     })), {})
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
-      principal_id                           = string
+      principal_id                           = optional(string)
       description                            = optional(string, null)
       skip_service_principal_aad_check       = optional(bool, false)
       condition                              = optional(string, null)

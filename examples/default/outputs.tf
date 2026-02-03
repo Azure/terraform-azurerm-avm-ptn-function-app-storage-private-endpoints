@@ -32,4 +32,10 @@ output "service_plan_name" {
 output "storage_account" {
   description = "The name of the storage account."
   value       = module.test.storage_account_resource.name
+  sensitive = true
+}
+
+output "test" {
+  value = module.test.testing_for_storage_account_role_assignment_helper
+  sensitive = true
 }

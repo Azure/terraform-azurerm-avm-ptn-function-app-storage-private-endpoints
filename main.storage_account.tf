@@ -1,6 +1,6 @@
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.4"
+  version = "0.6.7"
   count   = var.create_secure_storage_account ? 1 : 0
 
   location                            = var.location
@@ -47,11 +47,12 @@ module "storage_account" {
   queue_encryption_key_type     = var.storage_account.queue_encryption_key_type
   queue_properties              = var.storage_account.queue_properties
   queues                        = var.storage_account.queues
-  role_assignments = {
-    storage_blob_data_owner = {
-      role_definition_id_or_name = "Storage Blob Data Owner"
-      principal_id               = module.function_app.resource.identity[0].principal_id
-    }
+  role_assignments = merge(
+  {
+    # storage_blob_data_owner = {
+    #   role_definition_id_or_name = "Storage Blob Data Owner"
+    #   principal_id               = module.function_app.resource.identity[0].principal_id
+    # }
     storage_account_contributor = {
       role_definition_id_or_name = "Storage Account Contributor"
       principal_id               = module.function_app.resource.identity[0].principal_id
@@ -60,16 +61,17 @@ module "storage_account" {
       role_definition_id_or_name = "Storage Queue Data Contributor"
       principal_id               = module.function_app.resource.identity[0].principal_id
     }
-  }
+  })
   routing      = var.storage_account.routing
   sftp_enabled = var.storage_account.sftp_enabled
   # this is necessary as managed identity does not work with Elastic Premium Plans due to missing authentication support in Azure Files
   shared_access_key_enabled          = var.storage_account.shared_access_key_enabled
+  managed_identities = var.storage_account.managed_identities
   shares                             = length(var.storage_account.shares) > 0 ? local.var_shares : local.shares
   static_website                     = var.storage_account.static_website
   storage_management_policy_rule     = var.storage_account.storage_management_policy_rule
   storage_management_policy_timeouts = var.storage_account.storage_management_policy_timeouts
   table_encryption_key_type          = var.storage_account.table_encryption_key_type
   tables                             = var.storage_account.tables
-  tags                               = var.tags
+  tags                               = var.storage_account.tags
 }

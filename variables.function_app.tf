@@ -1262,7 +1262,7 @@ A map of logs to create on the Function App.
 # tflint-ignore: terraform_unused_declarations
 variable "managed_identities" {
   type = object({
-    system_assigned            = optional(bool, false)
+    system_assigned            = optional(bool, true)
     user_assigned_resource_ids = optional(set(string), [])
   })
   default     = {}
