@@ -1,6 +1,6 @@
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.4"
+  version = "0.6.7"
   count   = var.create_secure_storage_account ? 1 : 0
 
   location                            = var.location
@@ -21,6 +21,7 @@ module "storage_account" {
   https_traffic_only_enabled          = var.storage_account.https_traffic_only_enabled
   immutability_policy                 = var.storage_account.immutability_policy
   lock                                = var.storage_account.lock
+  managed_identities                  = var.storage_account.managed_identities
   min_tls_version                     = var.storage_account.min_tls_version
   network_rules                       = var.storage_account.network_rules
   nfsv3_enabled                       = var.storage_account.nfsv3_enabled
@@ -47,20 +48,10 @@ module "storage_account" {
   queue_encryption_key_type     = var.storage_account.queue_encryption_key_type
   queue_properties              = var.storage_account.queue_properties
   queues                        = var.storage_account.queues
-  role_assignments = {
-    storage_blob_data_owner = {
-      role_definition_id_or_name = "Storage Blob Data Owner"
-      principal_id               = module.function_app.resource.identity[0].principal_id
-    }
-    storage_account_contributor = {
-      role_definition_id_or_name = "Storage Account Contributor"
-      principal_id               = module.function_app.resource.identity[0].principal_id
-    }
-    storage_queue_data_contributor = {
-      role_definition_id_or_name = "Storage Queue Data Contributor"
-      principal_id               = module.function_app.resource.identity[0].principal_id
-    }
-  }
+  role_assignments = merge(
+    local.system_assigned_storage_account_role_assignment_default_helper,
+    var.storage_account.role_assignments
+  )
   routing      = var.storage_account.routing
   sftp_enabled = var.storage_account.sftp_enabled
   # this is necessary as managed identity does not work with Elastic Premium Plans due to missing authentication support in Azure Files
@@ -71,5 +62,5 @@ module "storage_account" {
   storage_management_policy_timeouts = var.storage_account.storage_management_policy_timeouts
   table_encryption_key_type          = var.storage_account.table_encryption_key_type
   tables                             = var.storage_account.tables
-  tags                               = var.tags
+  tags                               = var.storage_account.tags
 }

@@ -1,6 +1,6 @@
 module "function_app" {
   source  = "Azure/avm-res-web-site/azurerm"
-  version = "0.17.2"
+  version = "0.19.3"
 
   kind                             = "functionapp"
   location                         = var.location
@@ -54,7 +54,8 @@ module "function_app" {
   lock                                     = var.lock
   logs                                     = var.logs
   managed_identities = {
-    system_assigned = true
+    system_assigned            = var.managed_identities.system_assigned
+    user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
   }
   private_endpoints                              = var.private_endpoints
   private_endpoints_inherit_lock                 = var.private_endpoints_inherit_lock
@@ -66,7 +67,7 @@ module "function_app" {
   storage_account_name                           = var.create_secure_storage_account ? module.storage_account[0].name : var.storage_account_name
   storage_key_vault_secret_id                    = var.storage_key_vault_secret_id
   storage_shares_to_mount                        = var.storage_shares_to_mount
-  storage_uses_managed_identity                  = true
+  storage_uses_managed_identity                  = var.managed_identities.system_assigned == true || length(var.managed_identities.user_assigned_resource_ids) > 0 ? true : false
   tags                                           = var.tags
   timeouts                                       = var.timeouts
   virtual_network_subnet_id                      = var.virtual_network_subnet_id
