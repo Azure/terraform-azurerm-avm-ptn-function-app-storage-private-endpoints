@@ -31,6 +31,6 @@ output "service_plan_name" {
 
 output "storage_account" {
   description = "The name of the storage account."
-  value       = module.test.storage_account_resource.name
   sensitive   = true
+  value       = module.test.storage_account_resource.name
 }

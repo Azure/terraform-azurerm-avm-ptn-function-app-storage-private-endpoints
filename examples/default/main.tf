@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "example" {
   name     = "${module.naming.resource_group.name_unique}-secure-storage-default"
   tags = {
     SecurityControl = "Ignore"
-   }
+  }
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -89,15 +89,15 @@ module "function_app_private_dns_zone" {
 
 # User assigned managed identities
 resource "azurerm_user_assigned_identity" "example_on_function_app" {
+  location            = azurerm_resource_group.example.location
   name                = "example-on-function-app"
   resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_user_assigned_identity" "example_on_storage_account" {
+  location            = azurerm_resource_group.example.location
   name                = "example-on-storage-account"
   resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
 }
 
 module "test" {
@@ -126,7 +126,7 @@ module "test" {
   create_service_plan = true
   enable_telemetry    = var.enable_telemetry
   managed_identities = {
-    user_assigned_resource_ids = [ azurerm_user_assigned_identity.example_on_function_app.id ]
+    user_assigned_resource_ids = [azurerm_user_assigned_identity.example_on_function_app.id]
   }
   private_dns_zone_resource_group_name = azurerm_resource_group.example.name
   private_dns_zone_subscription_id     = data.azurerm_client_config.this.subscription_id
@@ -178,7 +178,7 @@ module "test" {
   private_endpoints = {
     primary = {
       name                          = "pe-${module.naming.function_app.name_unique}-secured-default"
-      private_dns_zone_resource_ids = [ module.function_app_private_dns_zone.resource.id ]
+      private_dns_zone_resource_ids = [module.function_app_private_dns_zone.resource.id]
       subnet_resource_id            = azurerm_subnet.private_endpoints.id
     }
   }
@@ -198,7 +198,7 @@ module "test" {
   }
   storage_account = {
     managed_identities = {
-      user_assigned_resource_ids = [ azurerm_user_assigned_identity.example_on_storage_account.id ]
+      user_assigned_resource_ids = [azurerm_user_assigned_identity.example_on_storage_account.id]
     }
     tags = {
       SecurityControl = "Ignore"
@@ -328,10 +328,6 @@ module "avm_res_compute_virtualmachine" {
 
   location = azurerm_resource_group.example.location
   name     = "${module.naming.virtual_machine.name_unique}-tf"
-  os_disk = {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
   network_interfaces = {
     network_interface_1 = {
       name = "nic-${module.naming.network_interface.name_unique}-tf"
@@ -359,9 +355,13 @@ module "avm_res_compute_virtualmachine" {
   enable_telemetry                   = false
   encryption_at_host_enabled         = false
   generate_admin_password_or_ssh_key = false
-  os_type                            = "Windows"
-  provision_vm_agent                 = false
-  sku_size                           = "Standard_D2_v5"
+  os_disk = {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+  os_type            = "Windows"
+  provision_vm_agent = false
+  sku_size           = "Standard_D2_v5"
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"

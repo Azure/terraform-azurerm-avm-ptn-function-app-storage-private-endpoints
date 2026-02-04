@@ -54,7 +54,7 @@ module "function_app" {
   lock                                     = var.lock
   logs                                     = var.logs
   managed_identities = {
-    system_assigned = var.managed_identities.system_assigned
+    system_assigned            = var.managed_identities.system_assigned
     user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
   }
   private_endpoints                              = var.private_endpoints

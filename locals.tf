@@ -7,13 +7,6 @@ locals {
       quota = 10
     }
   }
-  var_shares = {
-    for key, value in var.storage_account.shares :
-    key => {
-      name  = value.name
-      quota = value.quota
-    }
-  }
   storage_account_role_definitions_default = {
     storage_blob_data_owner        = "Storage Blob Data Owner"
     storage_account_contributor    = "Storage Account Contributor"
@@ -24,4 +17,11 @@ locals {
     principal_id               = module.function_app.resource.identity[0].principal_id
     }
   } : {}
+  var_shares = {
+    for key, value in var.storage_account.shares :
+    key => {
+      name  = value.name
+      quota = value.quota
+    }
+  }
 }

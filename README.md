@@ -1348,7 +1348,7 @@ Type:
 
 ```hcl
 object({
-    system_assigned            = optional(bool, false)
+    system_assigned            = optional(bool, true)
     user_assigned_resource_ids = optional(set(string), [])
   })
 ```
@@ -1998,6 +1998,10 @@ object({
     }), null)
     public_network_access_enabled = optional(bool, false)
     tags                          = optional(map(string), null)
+    managed_identities = optional(object({
+      system_assigned            = optional(bool, false)
+      user_assigned_resource_ids = optional(set(string), [])
+    }), {})
     network_rules = optional(object({
       bypass                     = optional(set(string), [])
       default_action             = optional(string, "Deny")
@@ -2557,7 +2561,7 @@ The following Modules are called:
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.17.2
+Version: 0.19.3
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 
@@ -2569,13 +2573,13 @@ Version: 0.3.4
 
 Source: Azure/avm-res-web-serverfarm/azurerm
 
-Version: 0.7.0
+Version: 0.8.0
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.4
+Version: 0.6.7
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

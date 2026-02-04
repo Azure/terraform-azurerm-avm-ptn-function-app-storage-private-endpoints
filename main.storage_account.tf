@@ -21,6 +21,7 @@ module "storage_account" {
   https_traffic_only_enabled          = var.storage_account.https_traffic_only_enabled
   immutability_policy                 = var.storage_account.immutability_policy
   lock                                = var.storage_account.lock
+  managed_identities                  = var.storage_account.managed_identities
   min_tls_version                     = var.storage_account.min_tls_version
   network_rules                       = var.storage_account.network_rules
   nfsv3_enabled                       = var.storage_account.nfsv3_enabled
@@ -55,7 +56,6 @@ module "storage_account" {
   sftp_enabled = var.storage_account.sftp_enabled
   # this is necessary as managed identity does not work with Elastic Premium Plans due to missing authentication support in Azure Files
   shared_access_key_enabled          = var.storage_account.shared_access_key_enabled
-  managed_identities                 = var.storage_account.managed_identities
   shares                             = length(var.storage_account.shares) > 0 ? local.var_shares : local.shares
   static_website                     = var.storage_account.static_website
   storage_management_policy_rule     = var.storage_account.storage_management_policy_rule
