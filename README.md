@@ -1348,7 +1348,7 @@ Type:
 
 ```hcl
 object({
-    system_assigned            = optional(bool, true)
+    system_assigned            = optional(bool, false)
     user_assigned_resource_ids = optional(set(string), [])
   })
 ```

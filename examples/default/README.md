@@ -133,6 +133,7 @@ module "test" {
   create_service_plan = true
   enable_telemetry    = var.enable_telemetry
   managed_identities = {
+    system_assigned            = true
     user_assigned_resource_ids = [azurerm_user_assigned_identity.example_on_function_app.id]
   }
   private_dns_zone_resource_group_name = azurerm_resource_group.example.name
