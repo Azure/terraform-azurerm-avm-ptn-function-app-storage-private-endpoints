@@ -15,12 +15,6 @@ output "function_app_private_dns_zone_id" {
   value       = length(var.private_dns_zones) > 0 && var.zone_key_for_link != null ? module.private_dns_zone[var.zone_key_for_link].resource.id : null
 }
 
-output "testing_for_storage_account_role_assignment_helper" {
-  description = "Helper to see the role assignments for the storage account"
-  value       = local.storage_account_role_assignment_helper
-  sensitive = true
-}
-
 output "name" {
   description = "This is the name of the resource."
   value       = module.function_app.name

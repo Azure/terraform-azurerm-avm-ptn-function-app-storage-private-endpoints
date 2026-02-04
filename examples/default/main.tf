@@ -20,6 +20,9 @@ data "azurerm_client_config" "this" {}
 resource "azurerm_resource_group" "example" {
   location = local.azure_regions[random_integer.region_index.result]
   name     = "${module.naming.resource_group.name_unique}-secure-storage-default"
+  tags = {
+    SecurityControl = "Ignore"
+   }
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -84,6 +87,19 @@ module "function_app_private_dns_zone" {
   }
 }
 
+# User assigned managed identities
+resource "azurerm_user_assigned_identity" "example_on_function_app" {
+  name                = "example-on-function-app"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_user_assigned_identity" "example_on_storage_account" {
+  name                = "example-on-storage-account"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
 module "test" {
   source = "../../"
 
@@ -107,8 +123,11 @@ module "test" {
   # Uses the avm-res-storage-storageaccount module to create a new storage account
   create_secure_storage_account = true
   # Creates a new app service plan
-  create_service_plan                  = true
-  enable_telemetry                     = var.enable_telemetry
+  create_service_plan = true
+  enable_telemetry    = var.enable_telemetry
+  managed_identities = {
+    user_assigned_resource_ids = [ azurerm_user_assigned_identity.example_on_function_app.id ]
+  }
   private_dns_zone_resource_group_name = azurerm_resource_group.example.name
   private_dns_zone_subscription_id     = data.azurerm_client_config.this.subscription_id
   # Creates the private dns zones via avm-res-network-privatednszone module
@@ -159,7 +178,7 @@ module "test" {
   private_endpoints = {
     primary = {
       name                          = "pe-${module.naming.function_app.name_unique}-secured-default"
-      private_dns_zone_resource_ids = [module.function_app_private_dns_zone.resource.id]
+      private_dns_zone_resource_ids = [ module.function_app_private_dns_zone.resource.id ]
       subnet_resource_id            = azurerm_subnet.private_endpoints.id
     }
   }
@@ -178,6 +197,9 @@ module "test" {
     }
   }
   storage_account = {
+    managed_identities = {
+      user_assigned_resource_ids = [ azurerm_user_assigned_identity.example_on_storage_account.id ]
+    }
     tags = {
       SecurityControl = "Ignore"
     }
@@ -186,7 +208,7 @@ module "test" {
         name                  = "diag"
         workspace_resource_id = azurerm_log_analytics_workspace.example.id
         # log_categories        = ["audit", "alllogs"]
-        metric_categories     = ["Capacity", "Transaction"]
+        metric_categories = ["Capacity", "Transaction"]
       }
     }
     diagnostic_settings_file = {
@@ -194,7 +216,7 @@ module "test" {
         name                  = "diag"
         workspace_resource_id = azurerm_log_analytics_workspace.example.id
         # log_categories        = ["audit", "alllogs"]
-        metric_categories     = ["Capacity", "Transaction"]
+        metric_categories = ["Capacity", "Transaction"]
       }
     }
     diagnostic_settings_queue = {
@@ -202,7 +224,7 @@ module "test" {
         name                  = "diag"
         workspace_resource_id = azurerm_log_analytics_workspace.example.id
         # log_categories        = ["audit", "alllogs"]
-        metric_categories     = ["Capacity", "Transaction"]
+        metric_categories = ["Capacity", "Transaction"]
       }
     }
     diagnostic_settings_storage_account = {
@@ -210,7 +232,7 @@ module "test" {
         name                  = "diag"
         workspace_resource_id = azurerm_log_analytics_workspace.example.id
         # log_categories        = ["audit", "alllogs"]
-        metric_categories     = ["Transaction"]
+        metric_categories = ["Transaction"]
       }
     }
     diagnostic_settings_table = {
@@ -218,13 +240,22 @@ module "test" {
         name                  = "diag"
         workspace_resource_id = azurerm_log_analytics_workspace.example.id
         # log_categories        = ["audit", "alllogs"]
-        metric_categories     = ["Capacity", "Transaction"]
+        metric_categories = ["Capacity", "Transaction"]
       }
     }
     name = module.naming.storage_account.name_unique
     role_assignments = {
       storage_blob_data_owner = {
         role_definition_id_or_name = "Storage Blob Data Owner"
+        principal_id               = azurerm_user_assigned_identity.example_on_function_app.principal_id
+      }
+      storage_account_contributor = {
+        role_definition_id_or_name = "Storage Account Contributor"
+        principal_id               = azurerm_user_assigned_identity.example_on_function_app.principal_id
+      }
+      storage_queue_data_contributor = {
+        role_definition_id_or_name = "Storage Queue Data Contributor"
+        principal_id               = azurerm_user_assigned_identity.example_on_function_app.principal_id
       }
     }
     resource_group_name = azurerm_resource_group.example.name
@@ -244,6 +275,7 @@ module "test" {
   storage_contentshare_name = module.naming.storage_account.name_unique
   virtual_network_subnet_id = azurerm_subnet.app_service.id
 }
+
 
 # Virtual machine to use for private endpoint testing:
 resource "random_integer" "zone_index" {
@@ -296,6 +328,10 @@ module "avm_res_compute_virtualmachine" {
 
   location = azurerm_resource_group.example.location
   name     = "${module.naming.virtual_machine.name_unique}-tf"
+  os_disk = {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
   network_interfaces = {
     network_interface_1 = {
       name = "nic-${module.naming.network_interface.name_unique}-tf"
@@ -325,7 +361,7 @@ module "avm_res_compute_virtualmachine" {
   generate_admin_password_or_ssh_key = false
   os_type                            = "Windows"
   provision_vm_agent                 = false
-  sku_size                           = "Standard_D2s_v3"
+  sku_size                           = "Standard_D2_v5"
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
