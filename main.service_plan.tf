@@ -1,6 +1,6 @@
 module "service_plan" {
   source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "0.8.0"
+  version = "2.0.6"
   count   = var.create_service_plan ? 1 : 0
 
   location                     = coalesce(var.service_plan.location, var.location)
