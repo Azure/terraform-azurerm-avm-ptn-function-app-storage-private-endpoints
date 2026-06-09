@@ -131,7 +131,7 @@ module "avm_res_storage_storageaccount" {
 
 module "avm_res_web_serverfarm" {
   source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "0.4.0"
+  version = "2.0.6"
 
   location               = azurerm_resource_group.example.location
   name                   = module.naming.app_service_plan.name_unique
