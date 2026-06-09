@@ -74,7 +74,7 @@ module "public_ip" {
 # Should you want the function app to be secured by private endpoints, you can use the following code:
 module "function_app_private_dns_zone" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "0.3.2"
+  version = "0.5.0"
 
   domain_name         = "privatelink.azurewebsites.net"
   resource_group_name = azurerm_resource_group.example.name
