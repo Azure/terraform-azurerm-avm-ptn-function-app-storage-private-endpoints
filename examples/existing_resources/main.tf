@@ -70,7 +70,7 @@ resource "azurerm_subnet" "app_service" {
 
 module "private_dns_zone" {
   source   = "Azure/avm-res-network-privatednszone/azurerm"
-  version  = "0.3.4"
+  version  = "0.5.0"
   for_each = local.endpoint_zones
 
   domain_name           = each.value.domain_name
