@@ -81,7 +81,7 @@ module "private_dns_zone" {
 
 module "avm_res_storage_storageaccount" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.5.0"
+  version = "0.7.2"
 
   location            = azurerm_resource_group.example.location
   name                = module.naming.storage_account.name_unique
