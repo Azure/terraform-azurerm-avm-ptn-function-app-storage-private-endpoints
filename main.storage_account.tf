@@ -1,6 +1,6 @@
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.7.3"
   count   = var.create_secure_storage_account ? 1 : 0
 
   location                            = var.location
