@@ -1,5 +1,6 @@
 # Optional
 
+
 # Required
 variable "location" {
   type        = string
