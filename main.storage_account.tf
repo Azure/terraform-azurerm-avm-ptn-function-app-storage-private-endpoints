@@ -5,7 +5,6 @@ module "storage_account" {
 
   location                            = var.location
   name                                = var.storage_account.name
-  resource_group_name                 = coalesce(var.storage_account.resource_group_name, var.resource_group_name)
   access_tier                         = var.storage_account.access_tier
   account_kind                        = var.storage_account.account_kind
   account_replication_type            = var.storage_account.account_replication_type
@@ -63,4 +62,5 @@ module "storage_account" {
   table_encryption_key_type          = var.storage_account.table_encryption_key_type
   tables                             = var.storage_account.tables
   tags                               = var.storage_account.tags
+  resource_group_name                = coalesce(var.storage_account.resource_group_name, var.resource_group_name)
 }

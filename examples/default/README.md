@@ -7,7 +7,7 @@ This deploys the pattern module in its simplest form.
 ```hcl
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = "= 0.3.0"
+  version = "0.8.2"
 }
 
 resource "random_integer" "region_index" {
@@ -19,7 +19,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "= 0.3.0"
+  version = "0.4.3"
 }
 
 data "azurerm_client_config" "this" {}
@@ -81,7 +81,7 @@ module "public_ip" {
 # Should you want the function app to be secured by private endpoints, you can use the following code:
 module "function_app_private_dns_zone" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "0.3.2"
+  version = "0.5.0"
 
   domain_name         = "privatelink.azurewebsites.net"
   resource_group_name = azurerm_resource_group.example.name
@@ -332,7 +332,7 @@ module "vm_sku" {
 # Create the virtual machine
 module "avm_res_compute_virtualmachine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.19.3"
+  version = "0.21.0"
 
   location = azurerm_resource_group.example.location
   name     = "${module.naming.virtual_machine.name_unique}-tf"
@@ -389,7 +389,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.10)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 5.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
 
@@ -477,19 +477,19 @@ The following Modules are called:
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.19.3
+Version: 0.21.0
 
 ### <a name="module_function_app_private_dns_zone"></a> [function\_app\_private\_dns\_zone](#module\_function\_app\_private\_dns\_zone)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.3.2
+Version: 0.5.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
 
-Version: = 0.3.0
+Version: 0.4.3
 
 ### <a name="module_public_ip"></a> [public\_ip](#module\_public\_ip)
 
@@ -501,7 +501,7 @@ Version: 0.1.0
 
 Source: Azure/regions/azurerm
 
-Version: = 0.3.0
+Version: 0.8.2
 
 ### <a name="module_test"></a> [test](#module\_test)
 
