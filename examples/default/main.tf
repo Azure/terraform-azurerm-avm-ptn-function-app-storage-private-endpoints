@@ -1,6 +1,6 @@
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = "= 0.3.0"
+  version = "0.8.2"
 }
 
 resource "random_integer" "region_index" {
@@ -11,7 +11,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "= 0.3.0"
+  version = "0.4.3"
 }
 
 data "azurerm_client_config" "this" {}
@@ -73,7 +73,7 @@ module "public_ip" {
 # Should you want the function app to be secured by private endpoints, you can use the following code:
 module "function_app_private_dns_zone" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "0.3.2"
+  version = "0.5.0"
 
   domain_name         = "privatelink.azurewebsites.net"
   resource_group_name = azurerm_resource_group.example.name
@@ -323,7 +323,7 @@ module "vm_sku" {
 # Create the virtual machine
 module "avm_res_compute_virtualmachine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.19.3"
+  version = "0.21.0"
 
   location = azurerm_resource_group.example.location
   name     = "${module.naming.virtual_machine.name_unique}-tf"

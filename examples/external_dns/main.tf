@@ -2,7 +2,7 @@
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = "= 0.3.0"
+  version = "0.8.2"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -16,7 +16,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "= 0.3.0"
+  version = "0.4.3"
 }
 
 # This is required for resource modules
@@ -69,7 +69,7 @@ resource "azurerm_subnet" "app_service" {
 
 module "private_dns_zone" {
   source   = "Azure/avm-res-network-privatednszone/azurerm"
-  version  = "0.3.4"
+  version  = "0.5.0"
   for_each = local.endpoint_zones
 
   domain_name           = each.value.domain_name

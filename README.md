@@ -2559,25 +2559,25 @@ The following Modules are called:
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.19.3
+Version: 0.22.0
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.3.4
+Version: 0.5.0
 
 ### <a name="module_service_plan"></a> [service\_plan](#module\_service\_plan)
 
 Source: Azure/avm-res-web-serverfarm/azurerm
 
-Version: 0.8.0
+Version: 2.0.8
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.7
+Version: 0.7.4
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
