@@ -10,6 +10,7 @@ resource "random_integer" "region_index" {
   max = length(local.azure_regions) - 1
   min = 0
 }
+
 ## End of section to provide a random Azure region for the resource group
 
 # This ensures we have unique CAF compliant names for our resources.
@@ -42,18 +43,18 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  address_prefixes     = ["192.168.0.0/25"]
   name                 = module.naming.subnet.name_unique
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["192.168.0.0/25"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_subnet" "app_service" {
-  address_prefixes     = ["192.168.0.128/25"]
   name                 = "${module.naming.subnet.name_unique}-appservice"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["192.168.0.128/25"]
   service_endpoints    = ["Microsoft.Storage"]
 
   delegation {
