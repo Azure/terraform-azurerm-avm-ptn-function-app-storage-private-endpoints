@@ -15,7 +15,6 @@ resource "random_integer" "region_index" {
   min = 0
 }
 
-
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
@@ -40,18 +39,18 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "private_endpoints" {
-  address_prefixes     = ["192.168.0.0/24"]
   name                 = "${module.naming.subnet.name_unique}-privateendpoints"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["192.168.0.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_subnet" "app_service" {
-  address_prefixes     = ["192.168.1.0/24"]
   name                 = "${module.naming.subnet.name_unique}-appservice"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["192.168.1.0/24"]
   service_endpoints    = ["Microsoft.Storage"]
 
   delegation {
@@ -283,7 +282,6 @@ module "test" {
   storage_contentshare_name = module.naming.storage_account.name_unique
   virtual_network_subnet_id = azurerm_subnet.app_service.id
 }
-
 
 # Virtual machine to use for private endpoint testing:
 resource "random_integer" "zone_index" {
