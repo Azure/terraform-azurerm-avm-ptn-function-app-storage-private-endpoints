@@ -77,7 +77,7 @@ module "function_app_private_dns_zone" {
 
   domain_name         = "privatelink.azurewebsites.net"
   resource_group_name = azurerm_resource_group.example.name
-  enable_telemetry    = var.enable_telemetry
+  enable_telemetry    = false
   virtual_network_links = {
     example = {
       vnetlinkname = "${azurerm_virtual_network.example.name}-link"
@@ -123,7 +123,7 @@ module "test" {
   create_secure_storage_account = true
   # Creates a new app service plan
   create_service_plan = true
-  enable_telemetry    = var.enable_telemetry
+  enable_telemetry    = false
   managed_identities = {
     system_assigned            = true
     user_assigned_resource_ids = [azurerm_user_assigned_identity.example_on_function_app.id]
@@ -306,8 +306,9 @@ module "vm_sku" {
   source  = "Azure/avm-utl-sku-finder/azapi"
   version = "0.3.0"
 
-  location      = azurerm_resource_group.example.location
-  cache_results = true
+  location         = azurerm_resource_group.example.location
+  cache_results    = true
+  enable_telemetry = false
   vm_filters = {
     min_vcpus                      = 2
     max_vcpus                      = 2
