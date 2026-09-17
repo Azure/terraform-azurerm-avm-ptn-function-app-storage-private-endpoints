@@ -74,7 +74,7 @@ module "private_dns_zone" {
 
   domain_name           = each.value.domain_name
   resource_group_name   = each.value.resource_group_name
-  enable_telemetry      = var.enable_telemetry
+  enable_telemetry      = false
   virtual_network_links = each.value.virtual_network_links
 }
 
@@ -103,7 +103,7 @@ module "test" {
   }
   create_secure_storage_account       = true
   create_service_plan                 = true
-  enable_telemetry                    = var.enable_telemetry
+  enable_telemetry                    = false
   private_endpoint_subnet_resource_id = azurerm_subnet.example.id
   public_network_access_enabled       = true
   site_config = {
