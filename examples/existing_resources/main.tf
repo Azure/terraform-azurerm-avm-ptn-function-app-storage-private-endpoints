@@ -76,7 +76,7 @@ module "private_dns_zone" {
 
   domain_name           = each.value.domain_name
   resource_group_name   = each.value.resource_group_name
-  enable_telemetry      = false
+  enable_telemetry      = var.enable_telemetry
   virtual_network_links = each.value.virtual_network_links
 }
 
@@ -87,7 +87,7 @@ module "avm_res_storage_storageaccount" {
   location            = azurerm_resource_group.example.location
   name                = module.naming.storage_account.name_unique
   resource_group_name = azurerm_resource_group.example.name
-  enable_telemetry    = false
+  enable_telemetry    = var.enable_telemetry
   network_rules = {
     bypass                     = ["AzureServices"]
     default_action             = "Deny"
@@ -138,7 +138,7 @@ module "avm_res_web_serverfarm" {
   name                   = module.naming.app_service_plan.name_unique
   os_type                = "Windows"
   resource_group_name    = azurerm_resource_group.example.name
-  enable_telemetry       = false
+  enable_telemetry       = var.enable_telemetry
   sku_name               = "P1v2"
   zone_balancing_enabled = false
 }
@@ -169,7 +169,7 @@ module "test" {
   }
   create_secure_storage_account = false
   create_service_plan           = false
-  enable_telemetry              = false
+  enable_telemetry              = var.enable_telemetry
   # Creates the private dns zones via avm-res-network-privatednszone module
   private_dns_zones = {
 

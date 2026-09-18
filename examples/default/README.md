@@ -84,7 +84,7 @@ module "function_app_private_dns_zone" {
 
   domain_name         = "privatelink.azurewebsites.net"
   resource_group_name = azurerm_resource_group.example.name
-  enable_telemetry    = false
+  enable_telemetry    = var.enable_telemetry
   virtual_network_links = {
     example = {
       vnetlinkname = "${azurerm_virtual_network.example.name}-link"
@@ -130,7 +130,7 @@ module "test" {
   create_secure_storage_account = true
   # Creates a new app service plan
   create_service_plan = true
-  enable_telemetry    = false
+  enable_telemetry    = var.enable_telemetry
   managed_identities = {
     system_assigned            = true
     user_assigned_resource_ids = [azurerm_user_assigned_identity.example_on_function_app.id]
@@ -315,7 +315,7 @@ module "vm_sku" {
 
   location         = azurerm_resource_group.example.location
   cache_results    = true
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
   vm_filters = {
     min_vcpus                      = 2
     max_vcpus                      = 2
@@ -359,7 +359,7 @@ module "avm_res_compute_virtualmachine" {
   admin_password                     = "P@ssw0rd1234!"
   admin_username                     = "TestAdmin"
   allow_extension_operations         = false
-  enable_telemetry                   = false
+  enable_telemetry                   = var.enable_telemetry
   encryption_at_host_enabled         = false
   generate_admin_password_or_ssh_key = false
   os_disk = {
