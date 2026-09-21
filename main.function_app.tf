@@ -1,14 +1,10 @@
 module "function_app" {
   source  = "Azure/avm-res-web-site/azurerm"
-  version = "0.19.3"
+  version = "0.22.0"
 
-  kind                             = "functionapp"
   location                         = var.location
   name                             = var.name
-  os_type                          = var.os_type
-  resource_group_name              = var.resource_group_name
   service_plan_resource_id         = var.create_service_plan ? module.service_plan[0].resource_id : var.service_plan_resource_id
-  all_child_resources_inherit_lock = var.all_child_resources_inherit_lock
   all_child_resources_inherit_tags = var.all_child_resources_inherit_tags
   app_service_active_slot          = var.app_service_active_slot
   # https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings
@@ -28,10 +24,8 @@ module "function_app" {
       WEBSITE_VNET_ROUTE_ALL  = 1
     }
   )
-  application_insights                     = var.application_insights
   auth_settings                            = var.auth_settings
   auth_settings_v2                         = var.auth_settings_v2
-  auto_heal_setting                        = var.auto_heal_setting
   backup                                   = var.backup
   builtin_logging_enabled                  = var.builtin_logging_enabled
   client_affinity_enabled                  = var.client_affinity_enabled
@@ -45,18 +39,18 @@ module "function_app" {
   deployment_slots                         = var.deployment_slots
   deployment_slots_inherit_lock            = var.deployment_slots_inherit_lock
   diagnostic_settings                      = var.diagnostic_settings
-  enable_application_insights              = var.enable_application_insights
   enable_telemetry                         = var.enable_telemetry
   ftp_publish_basic_authentication_enabled = var.ftp_publish_basic_authentication_enabled
   functions_extension_version              = var.functions_extension_version
   https_only                               = var.https_only
-  key_vault_reference_identity_id          = var.key_vault_reference_identity_id
+  kind                                     = "functionapp"
   lock                                     = var.lock
   logs                                     = var.logs
   managed_identities = {
     system_assigned            = var.managed_identities.system_assigned
     user_assigned_resource_ids = var.managed_identities.user_assigned_resource_ids
   }
+  os_type                                        = var.os_type
   private_endpoints                              = var.private_endpoints
   private_endpoints_inherit_lock                 = var.private_endpoints_inherit_lock
   private_endpoints_manage_dns_zone_group        = var.private_endpoints_manage_dns_zone_group
@@ -65,14 +59,20 @@ module "function_app" {
   site_config                                    = var.site_config
   storage_account_access_key                     = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : coalesce(var.storage_account_access_key, var.storage_account_primary_connection_string)
   storage_account_name                           = var.create_secure_storage_account ? module.storage_account[0].name : var.storage_account_name
-  storage_key_vault_secret_id                    = var.storage_key_vault_secret_id
   storage_shares_to_mount                        = var.storage_shares_to_mount
   storage_uses_managed_identity                  = var.managed_identities.system_assigned == true || length(var.managed_identities.user_assigned_resource_ids) > 0 ? true : false
   tags                                           = var.tags
   timeouts                                       = var.timeouts
   virtual_network_subnet_id                      = var.virtual_network_subnet_id
-  webdeploy_publish_basic_authentication_enabled = var.webdeploy_publish_basic_authentication_enabled
   zip_deploy_file                                = var.zip_deploy_file
+  resource_group_name                            = var.resource_group_name
+  all_child_resources_inherit_lock               = var.all_child_resources_inherit_lock
+  application_insights                           = var.application_insights
+  auto_heal_setting                              = var.auto_heal_setting
+  enable_application_insights                    = var.enable_application_insights
+  key_vault_reference_identity_id                = var.key_vault_reference_identity_id
+  storage_key_vault_secret_id                    = var.storage_key_vault_secret_id
+  webdeploy_publish_basic_authentication_enabled = var.webdeploy_publish_basic_authentication_enabled
 }
 
 # Toggle on `vnetContentShareEnabled` site property.

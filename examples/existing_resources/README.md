@@ -11,7 +11,7 @@ This deploys an example showing the pattern referencing existing resources or re
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = "= 0.3.0"
+  version = "0.8.2"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -25,7 +25,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "= 0.3.0"
+  version = "0.4.3"
 }
 
 data "azurerm_client_config" "this" {}
@@ -80,23 +80,22 @@ resource "azurerm_subnet" "app_service" {
 
 module "private_dns_zone" {
   source   = "Azure/avm-res-network-privatednszone/azurerm"
-  version  = "0.3.4"
+  version  = "0.5.0"
   for_each = local.endpoint_zones
 
   domain_name           = each.value.domain_name
-  resource_group_name   = each.value.resource_group_name
   enable_telemetry      = var.enable_telemetry
   virtual_network_links = each.value.virtual_network_links
+  resource_group_name   = each.value.resource_group_name
 }
 
 module "avm_res_storage_storageaccount" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.5.0"
+  version = "0.10.0"
 
-  location            = azurerm_resource_group.example.location
-  name                = module.naming.storage_account.name_unique
-  resource_group_name = azurerm_resource_group.example.name
-  enable_telemetry    = var.enable_telemetry
+  location         = azurerm_resource_group.example.location
+  name             = module.naming.storage_account.name_unique
+  enable_telemetry = var.enable_telemetry
   network_rules = {
     bypass                     = ["AzureServices"]
     default_action             = "Deny"
@@ -137,19 +136,20 @@ module "avm_res_storage_storageaccount" {
       quota = 1 # in GB
     }
   }
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 module "avm_res_web_serverfarm" {
   source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "0.4.0"
+  version = "2.0.8"
 
   location               = azurerm_resource_group.example.location
   name                   = module.naming.app_service_plan.name_unique
   os_type                = "Windows"
-  resource_group_name    = azurerm_resource_group.example.name
   enable_telemetry       = var.enable_telemetry
   sku_name               = "P1v2"
   zone_balancing_enabled = false
+  resource_group_name    = azurerm_resource_group.example.name
 }
 
 module "public_ip" {
@@ -284,25 +284,25 @@ The following Modules are called:
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.5.0
+Version: 0.10.0
 
 ### <a name="module_avm_res_web_serverfarm"></a> [avm\_res\_web\_serverfarm](#module\_avm\_res\_web\_serverfarm)
 
 Source: Azure/avm-res-web-serverfarm/azurerm
 
-Version: 0.4.0
+Version: 2.0.8
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
 
-Version: = 0.3.0
+Version: 0.4.3
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.3.4
+Version: 0.5.0
 
 ### <a name="module_public_ip"></a> [public\_ip](#module\_public\_ip)
 
@@ -314,7 +314,7 @@ Version: 0.1.0
 
 Source: Azure/regions/azurerm
 
-Version: = 0.3.0
+Version: 0.8.2
 
 ### <a name="module_test"></a> [test](#module\_test)
 
