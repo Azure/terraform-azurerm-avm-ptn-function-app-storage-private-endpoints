@@ -7,7 +7,7 @@ This deploys the pattern module in its simplest form.
 ```hcl
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = "= 0.3.0"
+  version = "0.8.2"
 }
 
 resource "random_integer" "region_index" {
@@ -18,7 +18,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "= 0.3.0"
+  version = "0.4.3"
 }
 
 data "azurerm_client_config" "this" {}
@@ -80,17 +80,17 @@ module "public_ip" {
 # Should you want the function app to be secured by private endpoints, you can use the following code:
 module "function_app_private_dns_zone" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "0.3.2"
+  version = "0.5.0"
 
-  domain_name         = "privatelink.azurewebsites.net"
-  resource_group_name = azurerm_resource_group.example.name
-  enable_telemetry    = var.enable_telemetry
+  domain_name      = "privatelink.azurewebsites.net"
+  enable_telemetry = var.enable_telemetry
   virtual_network_links = {
     example = {
       vnetlinkname = "${azurerm_virtual_network.example.name}-link"
       vnetid       = azurerm_virtual_network.example.id
     }
   }
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 # User assigned managed identities
@@ -331,10 +331,18 @@ module "vm_sku" {
 # Create the virtual machine
 module "avm_res_compute_virtualmachine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.19.3"
+  version = "0.21.0"
 
-  location = azurerm_resource_group.example.location
-  name     = "${module.naming.virtual_machine.name_unique}-tf"
+  location                           = azurerm_resource_group.example.location
+  name                               = "${module.naming.virtual_machine.name_unique}-tf"
+  resource_group_name                = azurerm_resource_group.example.name
+  zone                               = random_integer.zone_index.result
+  admin_password                     = "P@ssw0rd1234!"
+  admin_username                     = "TestAdmin"
+  allow_extension_operations         = false
+  enable_telemetry                   = var.enable_telemetry
+  encryption_at_host_enabled         = false
+  generate_admin_password_or_ssh_key = false
   network_interfaces = {
     network_interface_1 = {
       name = "nic-${module.naming.network_interface.name_unique}-tf"
@@ -354,14 +362,6 @@ module "avm_res_compute_virtualmachine" {
       }
     }
   }
-  resource_group_name                = azurerm_resource_group.example.name
-  zone                               = random_integer.zone_index.result
-  admin_password                     = "P@ssw0rd1234!"
-  admin_username                     = "TestAdmin"
-  allow_extension_operations         = false
-  enable_telemetry                   = var.enable_telemetry
-  encryption_at_host_enabled         = false
-  generate_admin_password_or_ssh_key = false
   os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
@@ -476,19 +476,19 @@ The following Modules are called:
 
 Source: Azure/avm-res-compute-virtualmachine/azurerm
 
-Version: 0.19.3
+Version: 0.21.0
 
 ### <a name="module_function_app_private_dns_zone"></a> [function\_app\_private\_dns\_zone](#module\_function\_app\_private\_dns\_zone)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.3.2
+Version: 0.5.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
 
-Version: = 0.3.0
+Version: 0.4.3
 
 ### <a name="module_public_ip"></a> [public\_ip](#module\_public\_ip)
 
@@ -500,7 +500,7 @@ Version: 0.1.0
 
 Source: Azure/regions/azurerm
 
-Version: = 0.3.0
+Version: 0.8.2
 
 ### <a name="module_test"></a> [test](#module\_test)
 
