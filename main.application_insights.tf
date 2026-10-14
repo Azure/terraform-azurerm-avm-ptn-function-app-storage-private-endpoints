@@ -1,0 +1,23 @@
+module "application_insights" {
+  source  = "Azure/avm-res-insights-component/azurerm"
+  version = "0.4.0"
+  count   = var.enable_application_insights ? 1 : 0
+
+  location                              = coalesce(var.application_insights.location, var.location)
+  name                                  = coalesce(var.application_insights.name, "ai-${var.name}")
+  resource_group_name                   = coalesce(var.application_insights.resource_group_name, var.resource_group_name)
+  workspace_id                          = var.application_insights.workspace_resource_id
+  application_type                      = var.application_insights.application_type
+  daily_data_cap_in_gb                  = var.application_insights.daily_data_cap_in_gb
+  daily_data_cap_notifications_disabled = var.application_insights.daily_data_cap_notifications_disabled
+  disable_ip_masking                    = var.application_insights.disable_ip_masking
+  enable_telemetry                      = var.enable_telemetry
+  force_customer_storage_for_profiler   = var.application_insights.force_customer_storage_for_profiler
+  internet_ingestion_enabled            = var.application_insights.internet_ingestion_enabled
+  internet_query_enabled                = var.application_insights.internet_query_enabled
+  local_authentication_disabled         = var.application_insights.local_authentication_disabled
+  retention_in_days                     = var.application_insights.retention_in_days
+  sampling_percentage                   = var.application_insights.sampling_percentage
+  tags                                  = var.application_insights.inherit_tags ? merge(var.tags, var.application_insights.tags) : var.application_insights.tags
+  timeouts                              = var.timeouts
+}

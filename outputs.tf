@@ -21,15 +21,15 @@ output "name" {
 }
 
 output "resource" {
-  description = "This is the full output for the resource."
+  description = "The Function App resource with compatibility fields for id, name, default_hostname and identity."
   sensitive   = true
-  value       = module.function_app.resource
+  value       = local.function_app_resource
 }
 
 output "resource_id" {
-  description = "This is the full output for the resource."
+  description = "The resource ID of the Function App."
   sensitive   = true
-  value       = module.function_app.resource.id
+  value       = module.function_app.resource_id
 }
 
 output "service_plan_resource" {
