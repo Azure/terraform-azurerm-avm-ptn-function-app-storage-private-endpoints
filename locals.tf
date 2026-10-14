@@ -14,7 +14,7 @@ locals {
   }
   system_assigned_storage_account_role_assignment_default_helper = var.managed_identities.system_assigned ? { for key, value in local.storage_account_role_definitions_default : key => {
     role_definition_id_or_name = value
-    principal_id               = module.function_app.resource.identity[0].principal_id
+    principal_id               = module.function_app.system_assigned_mi_principal_id
     }
   } : {}
   var_shares = {
