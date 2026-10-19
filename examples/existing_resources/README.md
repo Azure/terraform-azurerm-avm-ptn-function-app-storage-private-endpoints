@@ -24,8 +24,8 @@ resource "random_integer" "region_index" {
 
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "= 0.3.0"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 data "azurerm_client_config" "this" {}
@@ -79,9 +79,10 @@ resource "azurerm_subnet" "app_service" {
 }
 
 module "private_dns_zone" {
-  source   = "Azure/avm-res-network-privatednszone/azurerm"
-  version  = "0.3.4"
-  for_each = local.endpoint_zones
+  source    = "Azure/avm-res-network-privatednszone/azurerm"
+  version   = "0.3.4"
+  providers = { modtm = modtm }
+  for_each  = local.endpoint_zones
 
   domain_name           = each.value.domain_name
   resource_group_name   = each.value.resource_group_name
@@ -90,8 +91,9 @@ module "private_dns_zone" {
 }
 
 module "avm_res_storage_storageaccount" {
-  source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.5.0"
+  source    = "Azure/avm-res-storage-storageaccount/azurerm"
+  version   = "0.5.0"
+  providers = { modtm = modtm }
 
   location            = azurerm_resource_group.example.location
   name                = module.naming.storage_account.name_unique
@@ -140,8 +142,9 @@ module "avm_res_storage_storageaccount" {
 }
 
 module "avm_res_web_serverfarm" {
-  source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "0.4.0"
+  source    = "Azure/avm-res-web-serverfarm/azurerm"
+  version   = "0.4.0"
+  providers = { modtm = modtm }
 
   location               = azurerm_resource_group.example.location
   name                   = module.naming.app_service_plan.name_unique
@@ -159,7 +162,8 @@ module "public_ip" {
 }
 
 module "test" {
-  source = "../../"
+  source    = "../../"
+  providers = { modtm = modtm }
 
   location = azurerm_resource_group.example.location
   name     = "${module.naming.function_app.name_unique}-secured"
@@ -210,6 +214,8 @@ The following requirements are needed by this module:
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.10)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+
+- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
 
@@ -294,9 +300,9 @@ Version: 0.4.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
-Source: Azure/naming/azurerm
+Source: Azure/avm-utl-naming/azure
 
-Version: = 0.3.0
+Version: 0.2.0
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 

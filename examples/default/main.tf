@@ -10,8 +10,8 @@ resource "random_integer" "region_index" {
 
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "= 0.3.0"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 data "azurerm_client_config" "this" {}
@@ -72,8 +72,9 @@ module "public_ip" {
 
 # Should you want the function app to be secured by private endpoints, you can use the following code:
 module "function_app_private_dns_zone" {
-  source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "0.3.2"
+  source    = "Azure/avm-res-network-privatednszone/azurerm"
+  version   = "0.3.2"
+  providers = { modtm = modtm }
 
   domain_name         = "privatelink.azurewebsites.net"
   resource_group_name = azurerm_resource_group.example.name
@@ -100,7 +101,8 @@ resource "azurerm_user_assigned_identity" "example_on_storage_account" {
 }
 
 module "test" {
-  source = "../../"
+  source    = "../../"
+  providers = { modtm = modtm }
 
   location            = azurerm_resource_group.example.location
   name                = "${module.naming.function_app.name_unique}-secured"
@@ -303,8 +305,9 @@ resource "azurerm_network_security_rule" "example" {
 }
 
 module "vm_sku" {
-  source  = "Azure/avm-utl-sku-finder/azapi"
-  version = "0.3.0"
+  source    = "Azure/avm-utl-sku-finder/azapi"
+  version   = "0.3.0"
+  providers = { modtm = modtm }
 
   location         = azurerm_resource_group.example.location
   cache_results    = true
@@ -323,8 +326,9 @@ module "vm_sku" {
 
 # Create the virtual machine
 module "avm_res_compute_virtualmachine" {
-  source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.19.3"
+  source    = "Azure/avm-res-compute-virtualmachine/azurerm"
+  version   = "0.19.3"
+  providers = { modtm = modtm }
 
   location = azurerm_resource_group.example.location
   name     = "${module.naming.virtual_machine.name_unique}-tf"

@@ -15,8 +15,8 @@ resource "random_integer" "region_index" {
 
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "= 0.3.0"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 # This is required for resource modules
@@ -68,9 +68,10 @@ resource "azurerm_subnet" "app_service" {
 }
 
 module "private_dns_zone" {
-  source   = "Azure/avm-res-network-privatednszone/azurerm"
-  version  = "0.3.4"
-  for_each = local.endpoint_zones
+  source    = "Azure/avm-res-network-privatednszone/azurerm"
+  version   = "0.3.4"
+  providers = { modtm = modtm }
+  for_each  = local.endpoint_zones
 
   domain_name           = each.value.domain_name
   resource_group_name   = each.value.resource_group_name
@@ -85,7 +86,8 @@ module "public_ip" {
 }
 
 module "test" {
-  source = "../../"
+  source    = "../../"
+  providers = { modtm = modtm }
 
   location            = azurerm_resource_group.example.location
   name                = "${module.naming.function_app.name_unique}-external-dns"
