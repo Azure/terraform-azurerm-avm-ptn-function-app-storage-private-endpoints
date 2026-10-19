@@ -1,7 +1,8 @@
 module "storage_account" {
-  source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
-  count   = var.create_secure_storage_account ? 1 : 0
+  source    = "Azure/avm-res-storage-storageaccount/azurerm"
+  version   = "0.6.7"
+  providers = { modtm = modtm }
+  count     = var.create_secure_storage_account ? 1 : 0
 
   location                            = var.location
   name                                = var.storage_account.name

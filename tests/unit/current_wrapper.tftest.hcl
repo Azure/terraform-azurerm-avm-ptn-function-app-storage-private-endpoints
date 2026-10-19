@@ -1,10 +1,11 @@
 mock_provider "azapi" {
   mock_data "azapi_client_config" {
     defaults = {
-      subscription_id = "00000000-0000-0000-0000-000000000001"
-      tenant_id       = "00000000-0000-0000-0000-000000000002"
-      client_id       = "00000000-0000-0000-0000-000000000003"
-      object_id       = "00000000-0000-0000-0000-000000000004"
+      subscription_id          = "00000000-0000-0000-0000-000000000001"
+      tenant_id                = "00000000-0000-0000-0000-000000000002"
+      client_id                = "00000000-0000-0000-0000-000000000003"
+      object_id                = "00000000-0000-0000-0000-000000000004"
+      subscription_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000001"
     }
   }
   mock_data "azapi_resource_list" {
@@ -62,7 +63,9 @@ mock_provider "modtm" {
     }
   }
 }
+
 mock_provider "random" {}
+
 mock_provider "time" {}
 
 variables {
