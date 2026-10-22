@@ -79,10 +79,9 @@ resource "azurerm_subnet" "app_service" {
 }
 
 module "private_dns_zone" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.3.4"
-  providers = { modtm = modtm }
-  for_each  = local.endpoint_zones
+  source   = "Azure/avm-res-network-privatednszone/azurerm"
+  version  = "0.3.4"
+  for_each = local.endpoint_zones
 
   domain_name           = each.value.domain_name
   resource_group_name   = each.value.resource_group_name
@@ -91,9 +90,8 @@ module "private_dns_zone" {
 }
 
 module "avm_res_storage_storageaccount" {
-  source    = "Azure/avm-res-storage-storageaccount/azurerm"
-  version   = "0.5.0"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-storage-storageaccount/azurerm"
+  version = "0.5.0"
 
   location            = azurerm_resource_group.example.location
   name                = module.naming.storage_account.name_unique
@@ -142,9 +140,8 @@ module "avm_res_storage_storageaccount" {
 }
 
 module "avm_res_web_serverfarm" {
-  source    = "Azure/avm-res-web-serverfarm/azurerm"
-  version   = "0.4.0"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-web-serverfarm/azurerm"
+  version = "0.4.0"
 
   location               = azurerm_resource_group.example.location
   name                   = module.naming.app_service_plan.name_unique
@@ -162,8 +159,7 @@ module "public_ip" {
 }
 
 module "test" {
-  source    = "../../"
-  providers = { modtm = modtm }
+  source = "../../"
 
   location = azurerm_resource_group.example.location
   name     = "${module.naming.function_app.name_unique}-secured"

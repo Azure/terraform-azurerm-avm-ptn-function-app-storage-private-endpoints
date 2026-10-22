@@ -1,8 +1,7 @@
 module "service_plan" {
-  source    = "Azure/avm-res-web-serverfarm/azurerm"
-  version   = "0.8.0"
-  providers = { modtm = modtm }
-  count     = var.create_service_plan ? 1 : 0
+  source  = "Azure/avm-res-web-serverfarm/azurerm"
+  version = "0.8.0"
+  count   = var.create_service_plan ? 1 : 0
 
   location                     = coalesce(var.service_plan.location, var.location)
   name                         = coalesce(var.service_plan.name, "${var.name}-asp")
