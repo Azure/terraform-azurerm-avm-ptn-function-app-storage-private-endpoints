@@ -68,10 +68,9 @@ resource "azurerm_subnet" "app_service" {
 }
 
 module "private_dns_zone" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.3.4"
-  providers = { modtm = modtm }
-  for_each  = local.endpoint_zones
+  source   = "Azure/avm-res-network-privatednszone/azurerm"
+  version  = "0.3.4"
+  for_each = local.endpoint_zones
 
   domain_name           = each.value.domain_name
   resource_group_name   = each.value.resource_group_name
@@ -86,8 +85,7 @@ module "public_ip" {
 }
 
 module "test" {
-  source    = "../../"
-  providers = { modtm = modtm }
+  source = "../../"
 
   location            = azurerm_resource_group.example.location
   name                = "${module.naming.function_app.name_unique}-external-dns"

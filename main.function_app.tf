@@ -1,7 +1,6 @@
 module "function_app" {
-  source    = "Azure/avm-res-web-site/azurerm"
-  version   = "0.24.1"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-web-site/azurerm"
+  version = "0.24.1"
 
   location                                 = var.location
   name                                     = var.name
