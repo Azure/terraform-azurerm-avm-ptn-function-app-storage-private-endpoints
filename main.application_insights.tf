@@ -1,6 +1,6 @@
 module "application_insights" {
   source  = "Azure/avm-res-insights-component/azurerm"
-  version = "0.4.0"
+  version = "0.5.0"
   count   = var.enable_application_insights ? 1 : 0
 
   location                              = coalesce(var.application_insights.location, var.location)
