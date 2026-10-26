@@ -1,11 +1,10 @@
 module "application_insights" {
   source  = "Azure/avm-res-insights-component/azurerm"
-  version = "0.4.0"
+  version = "0.5.0"
   count   = var.enable_application_insights ? 1 : 0
 
   location                              = coalesce(var.application_insights.location, var.location)
   name                                  = coalesce(var.application_insights.name, "ai-${var.name}")
-  resource_group_name                   = coalesce(var.application_insights.resource_group_name, var.resource_group_name)
   workspace_id                          = var.application_insights.workspace_resource_id
   application_type                      = var.application_insights.application_type
   daily_data_cap_in_gb                  = var.application_insights.daily_data_cap_in_gb
@@ -20,4 +19,5 @@ module "application_insights" {
   sampling_percentage                   = var.application_insights.sampling_percentage
   tags                                  = var.application_insights.inherit_tags ? merge(var.tags, var.application_insights.tags) : var.application_insights.tags
   timeouts                              = var.timeouts
+  resource_group_name                   = coalesce(var.application_insights.resource_group_name, var.resource_group_name)
 }
