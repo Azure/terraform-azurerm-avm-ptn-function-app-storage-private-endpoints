@@ -73,9 +73,9 @@ module "private_dns_zone" {
   for_each = local.endpoint_zones
 
   domain_name           = each.value.domain_name
-  resource_group_name   = each.value.resource_group_name
   enable_telemetry      = var.enable_telemetry
   virtual_network_links = each.value.virtual_network_links
+  resource_group_name   = each.value.resource_group_name
 }
 
 module "public_ip" {

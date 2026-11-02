@@ -75,15 +75,15 @@ module "function_app_private_dns_zone" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
   version = "0.5.0"
 
-  domain_name         = "privatelink.azurewebsites.net"
-  resource_group_name = azurerm_resource_group.example.name
-  enable_telemetry    = var.enable_telemetry
+  domain_name      = "privatelink.azurewebsites.net"
+  enable_telemetry = var.enable_telemetry
   virtual_network_links = {
     example = {
       vnetlinkname = "${azurerm_virtual_network.example.name}-link"
       vnetid       = azurerm_virtual_network.example.id
     }
   }
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 # User assigned managed identities
@@ -326,8 +326,16 @@ module "avm_res_compute_virtualmachine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
   version = "0.21.0"
 
-  location = azurerm_resource_group.example.location
-  name     = "${module.naming.virtual_machine.name_unique}-tf"
+  location                           = azurerm_resource_group.example.location
+  name                               = "${module.naming.virtual_machine.name_unique}-tf"
+  resource_group_name                = azurerm_resource_group.example.name
+  zone                               = random_integer.zone_index.result
+  admin_password                     = "P@ssw0rd1234!"
+  admin_username                     = "TestAdmin"
+  allow_extension_operations         = false
+  enable_telemetry                   = var.enable_telemetry
+  encryption_at_host_enabled         = false
+  generate_admin_password_or_ssh_key = false
   network_interfaces = {
     network_interface_1 = {
       name = "nic-${module.naming.network_interface.name_unique}-tf"
@@ -347,14 +355,6 @@ module "avm_res_compute_virtualmachine" {
       }
     }
   }
-  resource_group_name                = azurerm_resource_group.example.name
-  zone                               = random_integer.zone_index.result
-  admin_password                     = "P@ssw0rd1234!"
-  admin_username                     = "TestAdmin"
-  allow_extension_operations         = false
-  enable_telemetry                   = var.enable_telemetry
-  encryption_at_host_enabled         = false
-  generate_admin_password_or_ssh_key = false
   os_disk = {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
