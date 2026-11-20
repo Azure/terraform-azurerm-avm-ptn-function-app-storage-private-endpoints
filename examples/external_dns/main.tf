@@ -69,13 +69,14 @@ resource "azurerm_subnet" "app_service" {
 
 module "private_dns_zone" {
   source   = "Azure/avm-res-network-privatednszone/azurerm"
-  version  = "0.5.0"
+  version  = "0.6.0"
   for_each = local.endpoint_zones
 
   domain_name           = each.value.domain_name
+  parent_id             = azurerm_resource_group.example.id
   enable_telemetry      = var.enable_telemetry
+  location              = var.location
   virtual_network_links = each.value.virtual_network_links
-  resource_group_name   = each.value.resource_group_name
 }
 
 module "public_ip" {

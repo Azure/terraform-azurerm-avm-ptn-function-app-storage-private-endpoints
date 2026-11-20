@@ -5,6 +5,7 @@ module "application_insights" {
 
   location                              = coalesce(var.application_insights.location, var.location)
   name                                  = coalesce(var.application_insights.name, "ai-${var.name}")
+  parent_id                             = "/subscriptions/${data.azapi_client_config.function_app.subscription_id}/resourceGroups/${coalesce(var.application_insights.resource_group_name, var.resource_group_name)}"
   workspace_id                          = var.application_insights.workspace_resource_id
   application_type                      = var.application_insights.application_type
   daily_data_cap_in_gb                  = var.application_insights.daily_data_cap_in_gb
@@ -19,5 +20,4 @@ module "application_insights" {
   sampling_percentage                   = var.application_insights.sampling_percentage
   tags                                  = var.application_insights.inherit_tags ? merge(var.tags, var.application_insights.tags) : var.application_insights.tags
   timeouts                              = var.timeouts
-  resource_group_name                   = coalesce(var.application_insights.resource_group_name, var.resource_group_name)
 }

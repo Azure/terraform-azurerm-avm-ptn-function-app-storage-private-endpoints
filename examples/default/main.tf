@@ -73,17 +73,18 @@ module "public_ip" {
 # Should you want the function app to be secured by private endpoints, you can use the following code:
 module "function_app_private_dns_zone" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "0.5.0"
+  version = "0.6.0"
 
   domain_name      = "privatelink.azurewebsites.net"
+  parent_id        = azurerm_resource_group.example.id
   enable_telemetry = var.enable_telemetry
+  location         = var.location
   virtual_network_links = {
     example = {
       vnetlinkname = "${azurerm_virtual_network.example.name}-link"
       vnetid       = azurerm_virtual_network.example.id
     }
   }
-  resource_group_name = azurerm_resource_group.example.name
 }
 
 # User assigned managed identities
@@ -304,7 +305,7 @@ resource "azurerm_network_security_rule" "example" {
 
 module "vm_sku" {
   source  = "Azure/avm-utl-sku-finder/azapi"
-  version = "0.4.0"
+  version = "0.4.2"
 
   location         = azurerm_resource_group.example.location
   cache_results    = true
@@ -324,7 +325,7 @@ module "vm_sku" {
 # Create the virtual machine
 module "avm_res_compute_virtualmachine" {
   source  = "Azure/avm-res-compute-virtualmachine/azurerm"
-  version = "0.21.0"
+  version = "0.22.1"
 
   location                           = azurerm_resource_group.example.location
   name                               = "${module.naming.virtual_machine.name_unique}-tf"
