@@ -11,7 +11,7 @@ This deploys an example showing the pattern referencing existing resources or re
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = "= 0.3.0"
+  version = "0.8.2"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -25,7 +25,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 }
 
 # This is required for resource modules
@@ -78,12 +78,13 @@ resource "azurerm_subnet" "app_service" {
 
 module "private_dns_zone" {
   source   = "Azure/avm-res-network-privatednszone/azurerm"
-  version  = "0.3.4"
+  version  = "0.6.0"
   for_each = local.endpoint_zones
 
   domain_name           = each.value.domain_name
-  resource_group_name   = each.value.resource_group_name
+  parent_id             = azurerm_resource_group.example.id
   enable_telemetry      = var.enable_telemetry
+  location              = var.location
   virtual_network_links = each.value.virtual_network_links
 }
 
@@ -167,11 +168,9 @@ module "test" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.10)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.12.0, < 2.0.0)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
-
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
 
@@ -213,6 +212,14 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: The Azure region for this module's resources or telemetry deployment.
+
+Type: `string`
+
+Default: `"eastus"`
+
 ## Outputs
 
 The following outputs are exported:
@@ -253,13 +260,13 @@ The following Modules are called:
 
 Source: Azure/avm-utl-naming/azure
 
-Version: 0.2.0
+Version: 0.3.0
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.3.4
+Version: 0.6.0
 
 ### <a name="module_public_ip"></a> [public\_ip](#module\_public\_ip)
 
@@ -271,7 +278,7 @@ Version: 0.1.0
 
 Source: Azure/regions/azurerm
 
-Version: = 0.3.0
+Version: 0.8.2
 
 ### <a name="module_test"></a> [test](#module\_test)
 

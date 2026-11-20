@@ -1,4 +1,6 @@
 locals {
+  os_type = "Windows"
+
   azure_regions = [
     "westus2",
     "canadacentral"

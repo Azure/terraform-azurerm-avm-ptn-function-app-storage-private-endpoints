@@ -73,8 +73,9 @@ module "private_dns_zone" {
   for_each = local.endpoint_zones
 
   domain_name           = each.value.domain_name
-  resource_group_name   = each.value.resource_group_name
+  parent_id             = azurerm_resource_group.example.id
   enable_telemetry      = var.enable_telemetry
+  location              = var.location
   virtual_network_links = each.value.virtual_network_links
 }
 

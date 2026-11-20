@@ -5,7 +5,7 @@ module "storage_account" {
 
   location                            = var.location
   name                                = var.storage_account.name
-  resource_group_name                 = coalesce(var.storage_account.resource_group_name, var.resource_group_name)
+  parent_id                           = "/subscriptions/${data.azapi_client_config.function_app.subscription_id}/resourceGroups/${coalesce(var.storage_account.resource_group_name, var.resource_group_name)}"
   access_tier                         = var.storage_account.access_tier
   account_kind                        = var.storage_account.account_kind
   account_replication_type            = var.storage_account.account_replication_type
@@ -63,4 +63,13 @@ module "storage_account" {
   table_encryption_key_type          = var.storage_account.table_encryption_key_type
   tables                             = var.storage_account.tables
   tags                               = var.storage_account.tags
+}
+
+data "azapi_resource_action" "storage_account_keys" {
+  count = var.create_secure_storage_account ? 1 : 0
+
+  action                 = "listKeys"
+  resource_id            = module.storage_account[0].resource_id
+  type                   = "Microsoft.Storage/storageAccounts@2023-05-01"
+  response_export_values = ["keys"]
 }
