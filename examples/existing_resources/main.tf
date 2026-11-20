@@ -2,7 +2,7 @@
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = "= 0.3.0"
+  version = "0.8.2"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -16,7 +16,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 }
 
 data "azurerm_client_config" "this" {}
@@ -71,23 +71,24 @@ resource "azurerm_subnet" "app_service" {
 
 module "private_dns_zone" {
   source   = "Azure/avm-res-network-privatednszone/azurerm"
-  version  = "0.3.4"
+  version  = "0.6.0"
   for_each = local.endpoint_zones
 
   domain_name           = each.value.domain_name
-  resource_group_name   = each.value.resource_group_name
+  parent_id             = azurerm_resource_group.example.id
   enable_telemetry      = var.enable_telemetry
+  location              = var.location
   virtual_network_links = each.value.virtual_network_links
 }
 
 module "avm_res_storage_storageaccount" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.5.0"
+  version = "0.11.0"
 
-  location            = azurerm_resource_group.example.location
-  name                = module.naming.storage_account.name_unique
-  resource_group_name = azurerm_resource_group.example.name
-  enable_telemetry    = var.enable_telemetry
+  location         = azurerm_resource_group.example.location
+  name             = module.naming.storage_account.name_unique
+  parent_id        = azurerm_resource_group.example.id
+  enable_telemetry = var.enable_telemetry
   network_rules = {
     bypass                     = ["AzureServices"]
     default_action             = "Deny"
@@ -132,15 +133,22 @@ module "avm_res_storage_storageaccount" {
 
 module "avm_res_web_serverfarm" {
   source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "0.4.0"
+  version = "2.1.0"
 
   location               = azurerm_resource_group.example.location
   name                   = module.naming.app_service_plan.name_unique
-  os_type                = "Windows"
-  resource_group_name    = azurerm_resource_group.example.name
+  os_type                = local.os_type
+  parent_id              = azurerm_resource_group.example.id
   enable_telemetry       = var.enable_telemetry
   sku_name               = "P1v2"
   zone_balancing_enabled = false
+}
+
+data "azapi_resource_action" "example_storage_keys" {
+  action                 = "listKeys"
+  resource_id            = module.avm_res_storage_storageaccount.resource_id
+  type                   = "Microsoft.Storage/storageAccounts@2023-05-01"
+  response_export_values = ["keys"]
 }
 
 module "public_ip" {
@@ -155,7 +163,7 @@ module "test" {
   location = azurerm_resource_group.example.location
   name     = "${module.naming.function_app.name_unique}-secured"
   # Uses an existing app service plan
-  os_type             = module.avm_res_web_serverfarm.resource.os_type
+  os_type             = local.os_type
   resource_group_name = azurerm_resource_group.example.name
   application_insights = {
     name                  = module.naming.application_insights.name_unique
@@ -184,10 +192,11 @@ module "test" {
       }
     }
   }
-  storage_account_access_key = module.avm_res_storage_storageaccount.resource.primary_access_key
+  storage_account_access_key = sensitive(one([
+    for key in data.azapi_resource_action.example_storage_keys.output.keys : key.value if key.keyName == "key1"
+  ]))
   # Uses an existing storage account
-  storage_account_name                      = module.avm_res_storage_storageaccount.name
-  storage_account_primary_connection_string = module.avm_res_storage_storageaccount.resource.primary_connection_string
-  storage_contentshare_name                 = "${module.avm_res_storage_storageaccount.name}-share1"
-  virtual_network_subnet_id                 = azurerm_subnet.app_service.id
+  storage_account_name      = module.avm_res_storage_storageaccount.name
+  storage_contentshare_name = "${module.avm_res_storage_storageaccount.name}-share1"
+  virtual_network_subnet_id = azurerm_subnet.app_service.id
 }

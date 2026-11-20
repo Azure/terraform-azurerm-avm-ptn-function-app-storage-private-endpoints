@@ -13,6 +13,11 @@ mock_provider "azapi" {
       output = { value = [], results = [] }
     }
   }
+  mock_data "azapi_resource_action" {
+    defaults = {
+      output = { keys = [{ keyName = "key1", value = "ZmFrZS1jcmVhdGVkLXN0b3JhZ2Uta2V5" }] }
+    }
+  }
   mock_resource "azapi_resource" {
     defaults = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-wrapper/providers/Microsoft.Web/sites/function-wrapper"
@@ -30,43 +35,23 @@ mock_provider "azapi" {
   }
 }
 
-mock_provider "azurerm" {
-  mock_data "azurerm_client_config" {
-    defaults = {
-      subscription_id = "00000000-0000-0000-0000-000000000001"
-      tenant_id       = "00000000-0000-0000-0000-000000000002"
-      client_id       = "00000000-0000-0000-0000-000000000003"
-      object_id       = "00000000-0000-0000-0000-000000000004"
-    }
-  }
-  mock_resource "azurerm_storage_account" {
-    defaults = {
-      id                        = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-wrapper/providers/Microsoft.Storage/storageAccounts/wrapperstorage"
-      primary_access_key        = "ZmFrZS13cmFwcGVyLWtleQ=="
-      primary_connection_string = "DefaultEndpointsProtocol=https;AccountName=wrapperstorage;AccountKey=ZmFrZS13cmFwcGVyLWtleQ==;EndpointSuffix=core.windows.net"
-    }
-  }
-  mock_resource "azurerm_application_insights" {
-    defaults = {
-      id                  = "/subscriptions/00000000-0000-0000-000000000001/resourceGroups/rg-wrapper/providers/Microsoft.Insights/components/ai-function-wrapper"
-      connection_string   = "InstrumentationKey=00000000-0000-0000-0000-000000000006;IngestionEndpoint=https://fake.applicationinsights.azure.com/"
-      instrumentation_key = "00000000-0000-0000-0000-000000000006"
-    }
-  }
-}
-
-mock_provider "modtm" {
-  mock_data "modtm_module_source" {
-    defaults = {
-      module_source  = "registry.terraform.io/Azure/avm-ptn-function-app-storage-private-endpoints/azurerm"
-      module_version = "0.0.0"
-    }
-  }
-}
-
 mock_provider "random" {}
 
 mock_provider "time" {}
+
+override_resource {
+  target = module.application_insights[0].azapi_resource.this
+  values = {
+    id = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-monitoring/providers/Microsoft.Insights/components/ai-wrapper-custom"
+    output = {
+      properties = {
+        AppId              = "00000000-0000-0000-0000-000000000009"
+        ConnectionString   = "InstrumentationKey=00000000-0000-0000-0000-000000000006;IngestionEndpoint=https://fake.applicationinsights.azure.com/"
+        InstrumentationKey = "00000000-0000-0000-0000-000000000006"
+      }
+    }
+  }
+}
 
 variables {
   location                                  = "eastus"
@@ -86,11 +71,9 @@ variables {
 run "existing_resources_windows" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   assert {
     condition     = module.function_app.resource.parent_id == "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-wrapper"
@@ -117,11 +100,9 @@ run "existing_resources_windows" {
 run "managed_identity_linux" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   variables {
     os_type = "Linux"
@@ -142,11 +123,9 @@ run "managed_identity_linux" {
 run "root_endpoint_fields_managed" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   variables {
     all_child_resources_inherit_lock = false
@@ -204,11 +183,9 @@ run "root_endpoint_fields_managed" {
 run "root_endpoint_fields_unmanaged" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   variables {
     private_endpoints_manage_dns_zone_group = false
@@ -237,11 +214,9 @@ run "root_endpoint_fields_unmanaged" {
 run "application_insights_composition" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   variables {
     enable_application_insights = true
@@ -278,11 +253,9 @@ run "application_insights_composition" {
 run "key_vault_storage_reference" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   variables {
     storage_key_vault_secret_id     = "https://fixture.vault.azure.net/secrets/storage-connection/00000000000000000000000000000001"
@@ -306,11 +279,9 @@ run "key_vault_storage_reference" {
 run "nested_site_and_auth_v1" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   variables {
     auth_settings = {
@@ -367,11 +338,9 @@ run "nested_site_and_auth_v1" {
 run "auth_v2_diagnostics_and_slot" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
 
   override_resource {
@@ -439,11 +408,9 @@ run "auth_v2_diagnostics_and_slot" {
 run "inherited_locks_and_slot_endpoint" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   override_resource {
     target = module.function_app.module.slot["staging"].azapi_resource.this
@@ -495,11 +462,9 @@ run "inherited_locks_and_slot_endpoint" {
 run "custom_domain_dns_certificate_and_slot" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   override_resource {
     target = module.function_app.module.slot["staging"].azapi_resource.this
@@ -555,11 +520,9 @@ run "custom_domain_dns_certificate_and_slot" {
 run "slot_authentication_v1" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   override_resource {
     target = module.function_app.module.slot["staging"].azapi_resource.this
@@ -596,11 +559,9 @@ run "slot_authentication_v1" {
 run "slot_authentication_v2_with_insights" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   override_resource {
     target = module.function_app.module.slot["staging"].azapi_resource.this
@@ -650,34 +611,20 @@ run "slot_authentication_v2_with_insights" {
 run "created_storage_and_plan" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   override_resource {
-    target = module.service_plan[0].azurerm_service_plan.this
+    target = module.service_plan[0].azapi_resource.this
     values = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-wrapper/providers/Microsoft.Web/serverFarms/created-plan-wrapper"
     }
   }
   override_resource {
-    target = module.storage_account[0].azurerm_storage_account.this
+    target = module.storage_account[0].azapi_resource.this
     values = {
-      id                        = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-wrapper/providers/Microsoft.Storage/storageAccounts/createdwrapperstorage"
-      primary_access_key        = "ZmFrZS1jcmVhdGVkLXN0b3JhZ2Uta2V5"
-      primary_connection_string = "DefaultEndpointsProtocol=https;AccountName=createdwrapperstorage;AccountKey=ZmFrZS1jcmVhdGVkLXN0b3JhZ2Uta2V5;EndpointSuffix=core.windows.net"
-    }
-  }
-  override_data {
-    target = module.service_plan[0].data.azurerm_location.region
-    values = {
-      zone_mappings = [
-        { logical_zone = "1", physical_zone = "eastus-az1" },
-        { logical_zone = "2", physical_zone = "eastus-az2" },
-        { logical_zone = "3", physical_zone = "eastus-az3" }
-      ]
+      id = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-wrapper/providers/Microsoft.Storage/storageAccounts/createdwrapperstorage"
     }
   }
   variables {
@@ -705,7 +652,7 @@ run "created_storage_and_plan" {
     error_message = "The created service plan must remain connected to the current Function App."
   }
   assert {
-    condition     = local.function_app_app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING == module.storage_account[0].resource.primary_connection_string && output.resource.identity[0].principal_id == "00000000-0000-0000-0000-000000000005"
+    condition     = local.function_app_app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING == "DefaultEndpointsProtocol=https;AccountName=createdwrapperstorage;AccountKey=ZmFrZS1jcmVhdGVkLXN0b3JhZ2Uta2V5;EndpointSuffix=core.windows.net" && output.resource.identity[0].principal_id == "00000000-0000-0000-0000-000000000005"
     error_message = "Content-share configuration and storage-role identity propagation must remain connected for created resources."
   }
 }
@@ -713,11 +660,9 @@ run "created_storage_and_plan" {
 run "disabled_insights_accepts_null_settings" {
   command = apply
   providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-    time    = time
+    azapi  = azapi
+    random = random
+    time   = time
   }
   variables {
     application_insights = null
