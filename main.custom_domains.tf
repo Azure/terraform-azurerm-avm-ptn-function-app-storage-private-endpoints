@@ -1,6 +1,6 @@
 module "custom_domain_certificate" {
   source   = "Azure/avm-res-web-site/azurerm//modules/certificate"
-  version  = "0.24.1"
+  version  = "0.25.0"
   for_each = local.custom_domain_certificates
 
   location              = coalesce(each.value.certificate_location, var.location)

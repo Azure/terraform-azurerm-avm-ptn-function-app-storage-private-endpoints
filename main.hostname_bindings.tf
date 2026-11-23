@@ -1,6 +1,6 @@
 module "custom_domain_binding" {
   source   = "Azure/avm-res-web-site/azurerm//modules/hostname_binding"
-  version  = "0.24.1"
+  version  = "0.25.0"
   for_each = var.custom_domains
 
   hostname = each.value.hostname
