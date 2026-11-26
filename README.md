@@ -4,11 +4,11 @@
 
 This pattern deploys a Function App with secured storage.
 
-The pattern uses `Azure/avm-res-web-site/azurerm` version `0.24.1`. Existing public authentication, diagnostics, lock-inheritance and site-configuration inputs are translated to its current interface. Private endpoints accept role assignment `name`, lock `notes`, `subresource_name` and IP configuration `member_name` for both the site and deployment slots.
+The pattern uses `Azure/avm-res-web-site/azurerm` version `0.25.0`. Existing public authentication, diagnostics, lock-inheritance and site-configuration inputs are translated to its current interface. Private endpoints accept role assignment `name`, lock `notes`, `subresource_name` and IP configuration `member_name` for both the site and deployment slots.
 
 Application Insights is composed separately when enabled and requires `application_insights.workspace_resource_id`. For user-assigned host-storage authentication, set `app_settings.AzureWebJobsStorage__clientId` to the identity's client ID and grant that identity the required storage roles. `storage_key_vault_secret_id` remains a connection-string secret URI; the platform resolves it without a Terraform secret read.
 
-The `resource` output retains `id`, `name`, `default_hostname` and the `identity` collection, including `identity[0].principal_id`. Other provider-specific AzureRM attributes are not guaranteed by the AzAPI resource shape. Output names and sensitivity are unchanged.
+The `resource` output retains `id`, `name`, `default_hostname` and the `identity` collection, including `identity[0].principal_id`. The `service_plan_resource` and `storage_account_resource` outputs no longer expose the full AzureRM object shape. The storage access key and connection string remain sensitive; obtaining them requires `Microsoft.Storage/storageAccounts/listKeys/action` on a module-created storage account.
 
 ## Upgrading from web-site 0.19.3
 
@@ -19,24 +19,25 @@ This is a breaking dependency migration, not a pin-only or state-safe upgrade. B
 | Main Function App | `module.function_app.azurerm_windows_function_app.this[0]` or `module.function_app.azurerm_linux_function_app.this[0]` | `module.function_app.azapi_resource.this`; select only the actual flavour and validate its provider conversion. |
 | Deployment slots | `module.function_app.azurerm_windows_function_app_slot.this["slot"]` or its Linux equivalent | `module.function_app.module.slot["slot"].azapi_resource.this`; review each slot. Slot locks, role assignments and endpoints changed collection boundaries and may require recreation. |
 | Private endpoints | `module.function_app.azurerm_private_endpoint.this["endpoint"]` or `module.function_app.azurerm_private_endpoint.this_unmanaged_dns_zone_groups["endpoint"]` | `module.function_app.azapi_resource.private_endpoint["endpoint"]`; the dependency declares a managed-endpoint move only. An unmanaged endpoint is not a DNS zone group and needs a consumer-specific migration. |
-| Application Insights | `module.function_app.azurerm_application_insights.this[0]` | `module.application_insights[0].azurerm_application_insights.this`; establish an explicit cross-module migration and supply the workspace ID. |
+| Application Insights | `module.function_app.azurerm_application_insights.this[0]` | `module.application_insights[0].azapi_resource.this`; establish an explicit cross-module migration and supply the workspace ID. |
+| Service plan | `module.service_plan[0].azurerm_service_plan.this` | `module.service_plan[0].azapi_resource.this`; verify the dependency's move and provider conversion. |
+| Storage account | `module.storage_account[0].azurerm_storage_account.this` | `module.storage_account[0].azapi_resource.this`; review the account and per-key child resource moves. |
+| Private DNS zones | `module.private_dns_zone["zone"].azurerm_private_dns_zone.this` | `module.private_dns_zone["zone"].azapi_resource.private_dns_zone`; verify each zone and its links. |
 | Custom-domain certificates | `module.function_app.azurerm_app_service_certificate.this["domain"]` | `module.custom_domain_certificate["domain"].azapi_resource.this`; validate the AzureRM-to-AzAPI conversion. |
 | Custom-domain DNS | `module.function_app.azurerm_dns_cname_record.this["domain"]` and `module.function_app.azurerm_dns_txt_record.this["domain"]` | `azapi_resource.custom_domain_cname["domain"]` and `azapi_resource.custom_domain_txt["domain"]`; existing DNS zones remain externally owned. |
 | Hostname bindings | `module.function_app.azurerm_app_service_custom_hostname_binding.this["domain"]` or `module.function_app.azurerm_app_service_slot_custom_hostname_binding.slot["domain"]` | `module.custom_domain_binding["domain"].azapi_resource.this`; review each hostname and target site/slot. |
 | Slot authentication | Embedded in the previous slot resource | `azapi_update_resource.slot_auth_settings["slot"]` or `slot_auth_settings_v2["slot"]`; configuration is now managed by a separate update resource. |
 
-Follow the dependency's [flavour-specific migration guidance](https://github.com/Azure/terraform-azurerm-avm-res-web-site/tree/v0.24.1#migration-from-earlier-module-versions), but do not treat a move declaration or mocked test as proof of provider-state conversion. Resolve unintended deletion/replacement before applying; explicitly plan any required slot-resource recreation. Supplying a previously ignored endpoint assignment name or subresource can itself change resource identity or require replacement.
+Follow the dependency's [flavour-specific migration guidance](https://github.com/Azure/terraform-azurerm-avm-res-web-site/tree/v0.25.0#migration-from-earlier-module-versions), but do not treat a move declaration or mocked test as proof of provider-state conversion. Resolve unintended deletion/replacement before applying; explicitly plan any required slot-resource recreation. Supplying a previously ignored endpoint assignment name or subresource can itself change resource identity or require replacement.
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.10)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.12.0, < 2.0.0)
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
-
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
 ## Resources
 
@@ -51,6 +52,7 @@ The following resources are used by this module:
 - [terraform_data.telemetry](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) (resource)
 - [azapi_client_config.function_app](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
+- [azapi_resource_action.storage_account_keys](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_action) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -2631,7 +2633,7 @@ Description: The resource ID of the Function App.
 
 ### <a name="output_service_plan_resource"></a> [service\_plan\_resource](#output\_service\_plan\_resource)
 
-Description: This is the name of the service plan.
+Description: Identity and configuration of the service plan created by this module.
 
 ### <a name="output_storage_account_resource"></a> [storage\_account\_resource](#output\_storage\_account\_resource)
 
@@ -2645,43 +2647,43 @@ The following Modules are called:
 
 Source: Azure/avm-res-insights-component/azurerm
 
-Version: 0.4.0
+Version: 0.5.0
 
 ### <a name="module_custom_domain_binding"></a> [custom\_domain\_binding](#module\_custom\_domain\_binding)
 
 Source: Azure/avm-res-web-site/azurerm//modules/hostname_binding
 
-Version: 0.24.1
+Version: 0.25.0
 
 ### <a name="module_custom_domain_certificate"></a> [custom\_domain\_certificate](#module\_custom\_domain\_certificate)
 
 Source: Azure/avm-res-web-site/azurerm//modules/certificate
 
-Version: 0.24.1
+Version: 0.25.0
 
 ### <a name="module_function_app"></a> [function\_app](#module\_function\_app)
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.24.1
+Version: 0.25.0
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.3.4
+Version: 0.6.0
 
 ### <a name="module_service_plan"></a> [service\_plan](#module\_service\_plan)
 
 Source: Azure/avm-res-web-serverfarm/azurerm
 
-Version: 0.8.0
+Version: 2.1.0
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.7
+Version: 0.11.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

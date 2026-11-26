@@ -8,12 +8,14 @@ locals {
       if startswith(lower(part), "accountkey=")
     ])
   )
-  function_app_storage_access_key = var.create_secure_storage_account ? module.storage_account[0].resource.primary_access_key : local.existing_storage_access_key
+  function_app_storage_access_key = var.create_secure_storage_account ? sensitive(one([
+    for key in data.azapi_resource_action.storage_account_keys[0].output.keys : key.value if key.keyName == "key1"
+  ])) : local.existing_storage_access_key
   function_app_storage_uses_managed_identity = var.storage_key_vault_secret_id == null && (
     var.managed_identities.system_assigned || length(var.managed_identities.user_assigned_resource_ids) > 0
   )
-  function_app_storage_connection_string = var.create_secure_storage_account ? module.storage_account[0].resource.primary_connection_string : (
-    var.storage_account_primary_connection_string != null ? var.storage_account_primary_connection_string : (
+  function_app_storage_connection_string = (
+    !var.create_secure_storage_account && var.storage_account_primary_connection_string != null ? var.storage_account_primary_connection_string : (
       local.function_app_storage_name != null && local.function_app_storage_access_key != null ?
       "DefaultEndpointsProtocol=https;AccountName=${local.function_app_storage_name};AccountKey=${local.function_app_storage_access_key};EndpointSuffix=core.windows.net" : null
     )

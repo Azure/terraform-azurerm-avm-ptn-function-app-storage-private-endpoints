@@ -11,7 +11,7 @@ This deploys an example showing the pattern referencing existing resources or re
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = "= 0.3.0"
+  version = "0.8.2"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -25,7 +25,7 @@ resource "random_integer" "region_index" {
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 }
 
 data "azurerm_client_config" "this" {}
@@ -80,23 +80,24 @@ resource "azurerm_subnet" "app_service" {
 
 module "private_dns_zone" {
   source   = "Azure/avm-res-network-privatednszone/azurerm"
-  version  = "0.3.4"
+  version  = "0.6.0"
   for_each = local.endpoint_zones
 
   domain_name           = each.value.domain_name
-  resource_group_name   = each.value.resource_group_name
+  parent_id             = azurerm_resource_group.example.id
   enable_telemetry      = var.enable_telemetry
+  location              = var.location
   virtual_network_links = each.value.virtual_network_links
 }
 
 module "avm_res_storage_storageaccount" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.5.0"
+  version = "0.11.0"
 
-  location            = azurerm_resource_group.example.location
-  name                = module.naming.storage_account.name_unique
-  resource_group_name = azurerm_resource_group.example.name
-  enable_telemetry    = var.enable_telemetry
+  location         = azurerm_resource_group.example.location
+  name             = module.naming.storage_account.name_unique
+  parent_id        = azurerm_resource_group.example.id
+  enable_telemetry = var.enable_telemetry
   network_rules = {
     bypass                     = ["AzureServices"]
     default_action             = "Deny"
@@ -141,15 +142,22 @@ module "avm_res_storage_storageaccount" {
 
 module "avm_res_web_serverfarm" {
   source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "0.4.0"
+  version = "2.1.0"
 
   location               = azurerm_resource_group.example.location
   name                   = module.naming.app_service_plan.name_unique
-  os_type                = "Windows"
-  resource_group_name    = azurerm_resource_group.example.name
+  os_type                = local.os_type
+  parent_id              = azurerm_resource_group.example.id
   enable_telemetry       = var.enable_telemetry
   sku_name               = "P1v2"
   zone_balancing_enabled = false
+}
+
+data "azapi_resource_action" "example_storage_keys" {
+  action                 = "listKeys"
+  resource_id            = module.avm_res_storage_storageaccount.resource_id
+  type                   = "Microsoft.Storage/storageAccounts@2023-05-01"
+  response_export_values = ["keys"]
 }
 
 module "public_ip" {
@@ -164,7 +172,7 @@ module "test" {
   location = azurerm_resource_group.example.location
   name     = "${module.naming.function_app.name_unique}-secured"
   # Uses an existing app service plan
-  os_type             = module.avm_res_web_serverfarm.resource.os_type
+  os_type             = local.os_type
   resource_group_name = azurerm_resource_group.example.name
   application_insights = {
     name                  = module.naming.application_insights.name_unique
@@ -193,12 +201,13 @@ module "test" {
       }
     }
   }
-  storage_account_access_key = module.avm_res_storage_storageaccount.resource.primary_access_key
+  storage_account_access_key = sensitive(one([
+    for key in data.azapi_resource_action.example_storage_keys.output.keys : key.value if key.keyName == "key1"
+  ]))
   # Uses an existing storage account
-  storage_account_name                      = module.avm_res_storage_storageaccount.name
-  storage_account_primary_connection_string = module.avm_res_storage_storageaccount.resource.primary_connection_string
-  storage_contentshare_name                 = "${module.avm_res_storage_storageaccount.name}-share1"
-  virtual_network_subnet_id                 = azurerm_subnet.app_service.id
+  storage_account_name      = module.avm_res_storage_storageaccount.name
+  storage_contentshare_name = "${module.avm_res_storage_storageaccount.name}-share1"
+  virtual_network_subnet_id = azurerm_subnet.app_service.id
 }
 ```
 
@@ -207,11 +216,11 @@ module "test" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.10)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.12.0, < 2.0.0)
+
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
-
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
 
@@ -225,6 +234,7 @@ The following resources are used by this module:
 - [azurerm_subnet.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [azapi_resource_action.example_storage_keys](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_action) (data source)
 - [azurerm_client_config.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -253,6 +263,14 @@ If it is set to false, then no telemetry will be collected.
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: The Azure region for this module's resources or telemetry deployment.
+
+Type: `string`
+
+Default: `"eastus"`
 
 ## Outputs
 
@@ -286,25 +304,25 @@ The following Modules are called:
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.5.0
+Version: 0.11.0
 
 ### <a name="module_avm_res_web_serverfarm"></a> [avm\_res\_web\_serverfarm](#module\_avm\_res\_web\_serverfarm)
 
 Source: Azure/avm-res-web-serverfarm/azurerm
 
-Version: 0.4.0
+Version: 2.1.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/avm-utl-naming/azure
 
-Version: 0.2.0
+Version: 0.3.0
 
 ### <a name="module_private_dns_zone"></a> [private\_dns\_zone](#module\_private\_dns\_zone)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.3.4
+Version: 0.6.0
 
 ### <a name="module_public_ip"></a> [public\_ip](#module\_public\_ip)
 
@@ -316,7 +334,7 @@ Version: 0.1.0
 
 Source: Azure/regions/azurerm
 
-Version: = 0.3.0
+Version: 0.8.2
 
 ### <a name="module_test"></a> [test](#module\_test)
 
